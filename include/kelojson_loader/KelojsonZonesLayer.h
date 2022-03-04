@@ -1,5 +1,5 @@
-#ifndef KELOJSONZONESLAYER_H_
-#define KELOJSONZONESLAYER_H_
+#ifndef KELO_KELOJSON_ZONES_LAYER_H
+#define KELO_KELOJSON_ZONES_LAYER_H
 
 #include "KelojsonLayer.h"
 
@@ -300,4 +300,4 @@ namespace kelojson {
 	};
 }
 
-#endif // KELOJSONZONESLAYER_H_
+#endif // KELO_KELOJSON_ZONES_LAYER_H

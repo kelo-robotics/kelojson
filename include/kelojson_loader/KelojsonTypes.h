@@ -1,5 +1,5 @@
-#ifndef KELOJSONTYPES_H_
-#define KELOJSONTYPES_H_
+#ifndef KELO_KELOJSON_TYPES_H
+#define KELO_KELOJSON_TYPES_H
 
 #include <string>
 #include <vector>
@@ -117,4 +117,4 @@ namespace kelojson {
 	typedef std::map<unsigned int, TopologyEdge>::const_iterator TopologyEdgeMapConstItr;
 }
 
-#endif //KELOJSONTYPES_H_
+#endif //KELO_KELOJSON_TYPES_H

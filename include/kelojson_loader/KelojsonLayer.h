@@ -1,5 +1,5 @@
-#ifndef KELOJSONLAYER_H_
-#define KELOJSONLAYER_H_
+#ifndef KELO_KELOJSON_LAYER_H
+#define KELO_KELOJSON_LAYER_H
 
 #include "OsmPrimitives.h"
 #include "KelojsonTypes.h"
@@ -60,4 +60,4 @@ namespace kelojson {
 	// };
 }
 
-#endif // KELOJSONLAYER_H_
+#endif // KELO_KELOJSON_LAYER_H

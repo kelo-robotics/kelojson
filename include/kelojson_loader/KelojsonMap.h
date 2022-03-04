@@ -1,5 +1,5 @@
-#ifndef KELOJSONMAP_H_
-#define KELOJSONMAP_H_
+#ifndef KELO_KELOJSON_MAP_H
+#define KELO_KELOJSON_MAP_H
 
 #include "KelojsonAreasLayer.h"
 #include "KelojsonZonesLayer.h"
@@ -51,4 +51,4 @@ namespace kelojson {
 	};
 }
 
-#endif // KELOJSONMAP_H_
+#endif // KELO_KELOJSON_MAP_H

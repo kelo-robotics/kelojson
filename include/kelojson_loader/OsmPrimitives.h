@@ -1,5 +1,5 @@
-#ifndef OSMPRIMITIVES_H_
-#define OSMPRIMITIVES_H_
+#ifndef KELO_OSM_PRIMITIVES_H
+#define KELO_OSM_PRIMITIVES_H
 
 #include "KelojsonTypes.h"
 #include <navigation_common/Common.h>
@@ -87,4 +87,4 @@ namespace kelojson {
 	}
 }
 
-#endif // OSMPRIMITIVES_H_
+#endif // KELO_OSM_PRIMITIVES_H
