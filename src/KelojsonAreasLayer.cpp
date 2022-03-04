@@ -1,7 +1,14 @@
-#include "kelojson_loader/KelojsonMap.h"
-#include "kelojson_loader/KelojsonAreasLayer.h"
+
 #include <iostream>
 #include <limits>
+#include <geometry_common/LineSegment2D.h>
+#include <geometry_common/Polygon2D.h>
+
+#include "kelojson_loader/KelojsonMap.h"
+#include "kelojson_loader/KelojsonAreasLayer.h"
+
+using Polygon2D = kelo::geometry_common::Polygon2D;
+using LineSegment2D = kelo::geometry_common::LineSegment2D;
 
 namespace kelojson {
 
@@ -25,7 +32,7 @@ bool AreaTransition::isDoor() const {
 }
 
 double AreaTransition::width() const {
-	return coordinates[0].dist(coordinates[coordinates.size() - 1]);
+	return coordinates[0].getCartDist(coordinates[coordinates.size() - 1]);
 
 }
 
@@ -91,11 +98,11 @@ std::vector<AreaTransition> Area::getDoorsWithArea(int adjAreaId) const {
 	return std::vector<AreaTransition>();
 }
 
-bool Area::contains(Pos point) const {
-	return kelojson::utils::pointInPolygon(point, coordinates);
+bool Area::contains(Point2D point) const {
+	return Polygon2D(coordinates).containsPoint(point);
 }
 
-bool Area::insideBoundingBox(Pos pt) const {
+bool Area::insideBoundingBox(Point2D pt) const {
 	return pt.x > boundingBox.first.x &&
 		   pt.x < boundingBox.second.x &&
 		   pt.y > boundingBox.first.y &&
@@ -129,15 +136,15 @@ void AreasLayer::loadGeometries(const Map& map) {
 			way->getTagValue("name", area.name);
 
 			bool success = true;
-			area.boundingBox.first = Pos(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
-			area.boundingBox.second = Pos(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
+			area.boundingBox.first = Point2D(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+			area.boundingBox.second = Point2D(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
 			for (unsigned int i = 0; i < way->nodeIds.size(); i++) {
 				const osm::Node* node = map.getOsmNode(way->nodeIds[i]);
 				if (node == NULL) {
 					success = false;
 					break;
 				}
-				Pos pos = node->position;
+				Point2D pos = node->position;
 				area.coordinates.push_back(pos);
 
 				// Update bounding box
@@ -243,7 +250,7 @@ const Area* AreasLayer::getArea(const std::string& areaName) const {
 }
 
 
-const Area* AreasLayer::getArea(const Pos& point) const {
+const Area* AreasLayer::getArea(const Point2D& point) const {
 	std::multiset<const Area*, AreaBBoxComparator> sortedAreas = getAreasByBBoxSize();
 	for (std::multiset<const Area*, AreaBBoxComparator>::const_iterator itr = sortedAreas.begin(); itr != sortedAreas.end(); itr++) {
 		if ((*itr)->contains(point))
@@ -276,13 +283,13 @@ std::map<int, const AreaTransition*> AreasLayer::getAllAreaTransitions() const {
 	return transitions;
 }
 
-bool AreasLayer::getDistanceToTransition(const Pos& point, const AreaTransition* transition, double& distance) const {
+bool AreasLayer::getDistanceToTransition(const Point2D& point, const AreaTransition* transition, double& distance) const {
 	if (transition != NULL) {
 		// Find the closest point on the transition
-		Pos closestPoint = transition->coordinates[0];
-		double shortestDistance = closestPoint.dist(point);
+		Point2D closestPoint = transition->coordinates[0];
+		double shortestDistance = closestPoint.getCartDist(point);
 		for (unsigned int i = 1; i < transition->coordinates.size(); i++) {
-			double dist = transition->coordinates[i].dist(point);
+			double dist = transition->coordinates[i].getCartDist(point);
 			if (dist < shortestDistance) {
 				shortestDistance = dist;
 				closestPoint = transition->coordinates[i];
@@ -295,7 +302,7 @@ bool AreasLayer::getDistanceToTransition(const Pos& point, const AreaTransition*
 	return false;
 }
 
-std::vector<const AreaTransition*> AreasLayer::getNearestTransitions(const Pos& point, double searchRadius, unsigned int maxNumTransitions) const {
+std::vector<const AreaTransition*> AreasLayer::getNearestTransitions(const Point2D& point, double searchRadius, unsigned int maxNumTransitions) const {
 	if (maxNumTransitions <= 0)
 		return std::vector<const AreaTransition*>();
 
@@ -413,7 +420,7 @@ std::vector<int> AreasLayer::computePath(const std::string& startAreaName, const
 	return std::vector<int>();
 }
 
-std::vector<int> AreasLayer::computePath(const Pos& startPos, const Pos& goalPos) const {
+std::vector<int> AreasLayer::computePath(const Point2D& startPos, const Point2D& goalPos) const {
 	const Area* startArea = getArea(startPos);
 	const Area* goalArea = getArea(goalPos);
 	if (startArea!= NULL && goalArea != NULL) {
@@ -434,7 +441,7 @@ std::string AreasLayer::getPrintablePath(const std::vector<int>& path) const {
 	return str;
 }
 
-std::vector<const AreaTransition*> AreasLayer::getIntersectingAreaTransitions(const std::vector<Pos>& lineString) const {
+std::vector<const AreaTransition*> AreasLayer::getIntersectingAreaTransitions(const std::vector<Point2D>& lineString) const {
 	if (lineString.size() < 2)
 		return std::vector<const AreaTransition*>();
 
@@ -442,15 +449,16 @@ std::vector<const AreaTransition*> AreasLayer::getIntersectingAreaTransitions(co
 	std::map<int, const AreaTransition*> transitions = getAllAreaTransitions();
 
 	for(unsigned int edgeIdx = 0; edgeIdx < lineString.size() - 1; edgeIdx++) {
-		Pos edgeNode1 = lineString[edgeIdx];
-		Pos edgeNode2 = lineString[edgeIdx + 1];
+		LineSegment2D edge(lineString[edgeIdx], lineString[edgeIdx + 1]);
 		for (std::map<int, const AreaTransition*>::const_iterator itr = transitions.begin(); itr != transitions.end(); itr++) {
 			const AreaTransition* trans = itr->second;
 			if (trans != NULL) {
 				for (unsigned int transEdgeIdx = 0; transEdgeIdx < trans->coordinates.size() - 1; transEdgeIdx++) {
-					Pos transEdgeNode1 = trans->coordinates[transEdgeIdx];
-					Pos transEdgeNode2 = trans->coordinates[transEdgeIdx + 1];
-					if (lineSegmentsIntersect(edgeNode1, edgeNode2, transEdgeNode1, transEdgeNode2)) {
+					Point2D transEdgeNode1 = trans->coordinates[transEdgeIdx];
+					Point2D transEdgeNode2 = trans->coordinates[transEdgeIdx + 1];
+					LineSegment2D transEdge(trans->coordinates[transEdgeIdx],
+											trans->coordinates[transEdgeIdx + 1]);
+					if (edge.isIntersecting(transEdge)) {
 						if (std::find(intersections.begin(), intersections.end(), trans) == intersections.end()) {
 							intersections.push_back(trans);
 							break;
@@ -463,14 +471,14 @@ std::vector<const AreaTransition*> AreasLayer::getIntersectingAreaTransitions(co
 	return intersections;
 }
 
-std::vector<const AreaTransition*> AreasLayer::getIntersectingAreaTransitions(const Pos& start, const Pos& end) const {
-	std::vector<Pos> lineString;
+std::vector<const AreaTransition*> AreasLayer::getIntersectingAreaTransitions(const Point2D& start, const Point2D& end) const {
+	std::vector<Point2D> lineString;
 	lineString.push_back(start);
 	lineString.push_back(end);
 	return getIntersectingAreaTransitions(lineString);
 }
 
-bool AreasLayer::contains(const Pos& pos) const {
+bool AreasLayer::contains(const Point2D& pos) const {
 	for (std::map<int, Area>::const_iterator itr = areas.begin(); itr != areas.end(); itr++) {
 		if (itr->second.contains(pos)) {
 			return true;
