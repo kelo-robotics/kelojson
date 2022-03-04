@@ -1,7 +1,14 @@
+
+#include <iostream>
+#include <geometry_common/LineSegment2D.h>
+#include <geometry_common/Polygon2D.h>
+
 #include "kelojson_loader/KelojsonMap.h"
 #include "kelojson_loader/KelojsonAreasLayer.h"
 #include "kelojson_loader/KelojsonZonesLayer.h"
-#include <iostream>
+
+using Polygon2D = kelo::geometry_common::Polygon2D;
+using LineSegment2D = kelo::geometry_common::LineSegment2D;
 
 namespace kelojson {
 
@@ -57,31 +64,31 @@ std::vector<int> Zone::getOverlappingAreaIds() const {
 	return std::vector<int>();
 }
 
-ZoneNode::ZoneNode(int featId, zoneTypes::ZoneTypes type, osm::primitiveType::PrimitiveType primType, const Pose& p, const std::string& zoneName)
+ZoneNode::ZoneNode(int featId, zoneTypes::ZoneTypes type, osm::primitiveType::PrimitiveType primType, const Pose2D& p, const std::string& zoneName)
 : Zone(featId, type, primType, zoneName)
 , pose(p)
 {
 }
 
-ZoneLine::ZoneLine(int featId, zoneTypes::ZoneTypes type, osm::primitiveType::PrimitiveType primType, const std::vector<Pos>& coords, const std::string& zoneName)
+ZoneLine::ZoneLine(int featId, zoneTypes::ZoneTypes type, osm::primitiveType::PrimitiveType primType, const std::vector<Point2D>& coords, const std::string& zoneName)
 : Zone(featId, type, primType, zoneName)
 , coordinates(coords)
 {
 }
 
-ZonePolygon::ZonePolygon(int featId, zoneTypes::ZoneTypes type, osm::primitiveType::PrimitiveType primType, const std::vector<Pos>& coords, const std::string& zoneName)
+ZonePolygon::ZonePolygon(int featId, zoneTypes::ZoneTypes type, osm::primitiveType::PrimitiveType primType, const std::vector<Point2D>& coords, const std::string& zoneName)
 : Zone(featId, type, primType, zoneName)
 , coordinates(coords)
 {
 }
 
-bool ZonePolygon::contains(Pos point) const {
-	return kelojson::utils::pointInPolygon(point, coordinates);
+bool ZonePolygon::contains(Point2D point) const {
+	return Polygon2D(coordinates).containsPoint(point);
 }
 
 Ramp::Ramp(int featureId, zoneTypes::ZoneTypes zoneType,
 		   osm::primitiveType::PrimitiveType primitiveType,
-		   const std::vector<Pos>& coordinates, double incline, const std::string& name) 
+		   const std::vector<Point2D>& coordinates, double incline, const std::string& name) 
 : ZonePolygon(featureId, zoneType, primitiveType, coordinates, name)
 , inclination(incline) {
 }
@@ -92,24 +99,24 @@ bool Ramp::valid() const {
 		   bottomNodes.size() >= 2;		// Minimum two nodes marked as bottom nodes
 }
 
-std::vector<Pos> Ramp::getBottomNodePositions() const {
-	std::vector<Pos> positions;
+std::vector<Point2D> Ramp::getBottomNodePositions() const {
+	std::vector<Point2D> positions;
 	for (unsigned int i = 0; i < bottomNodes.size(); i++) {
 		positions.push_back(coordinates[bottomNodes[i]]);
 	}
 	return positions;
 }
 
-std::vector<Pos> Ramp::getTopNodePositions() const {
-	std::vector<Pos> positions;
+std::vector<Point2D> Ramp::getTopNodePositions() const {
+	std::vector<Point2D> positions;
 	for (unsigned int i = 0; i < topNodes.size(); i++) {
 		positions.push_back(coordinates[topNodes[i]]);
 	}
 	return positions;
 }
 
-bool Ramp::intersectsEdge(const Pos& edgeStart, const Pos& edgeEnd) const {
-	return kelojson::utils::edgeTouchesPolygon(edgeStart, edgeEnd, coordinates);
+bool Ramp::intersectsEdge(const Point2D& edgeStart, const Point2D& edgeEnd) const {
+	return Polygon2D(coordinates).isIntersecting(LineSegment2D(edgeStart, edgeEnd));
 }
 
 std::vector<int> Ramp::getOverlappingAreaTransitionIds(const Map* kelojsonMap) const {
@@ -129,8 +136,8 @@ std::vector<int> Ramp::getOverlappingAreaTransitionIds(const Map* kelojsonMap) c
 		for (unsigned int j = i+1; j < areaIds.size(); j++) {
 			std::vector<AreaTransition> transitions = kelojsonMap->getAreasLayer()->getArea(areaIds[i])->getTransitionsWithArea(areaIds[j]);
 			for (unsigned int k = 0; k < transitions.size(); k++) {
-				Pos tStart = transitions[k].coordinates[0];
-				Pos tEnd = transitions[k].coordinates[transitions[k].coordinates.size() - 1];
+				Point2D tStart = transitions[k].coordinates[0];
+				Point2D tEnd = transitions[k].coordinates[transitions[k].coordinates.size() - 1];
 				if (intersectsEdge(tStart, tEnd)) {
 					overlappingTransitionIds.push_back(transitions[k].featureId);
 				}
@@ -168,7 +175,7 @@ void OcclusionRegion::addAreaTransition(const AreaTransition* transition) {
 	areaTransitions.insert(std::make_pair(transition->featureId, transition));
 }
 
-bool OcclusionRegion::overlapsWithLineString(std::vector<Pos> lineString) const {
+bool OcclusionRegion::overlapsWithLineString(std::vector<Point2D> lineString) const {
 	bool overlaps = false;
 	for (unsigned int i = 0; (i+1) < lineString.size() && !overlaps; i++) {
 		overlaps = overlapsWithLineSegment(lineString[i], lineString[i + 1]);
@@ -177,30 +184,30 @@ bool OcclusionRegion::overlapsWithLineString(std::vector<Pos> lineString) const 
 	return overlaps;
 }
 
-bool OcclusionRegion::overlapsWithLineSegment(Pos lineSegStart, Pos lineSegEnd) const {
+bool OcclusionRegion::overlapsWithLineSegment(Point2D lineSegStart, Point2D lineSegEnd) const {
 	bool overlaps = false;
 
 	for (std::map<int, const ZoneLine*>::const_iterator itr = occlusionLines.begin(); itr != occlusionLines.end() && !overlaps; itr++) {
 		const ZoneLine* occlusionLine = itr->second;
 		if (!occlusionLine || occlusionLine->getCoordinatesRef().size() < 2)
 			continue;
-		overlaps = utils::edgeTouchesLineString(lineSegStart, lineSegEnd, occlusionLine->getCoordinatesRef());
+		overlaps = Polygon2D(occlusionLine->getCoordinatesRef()).isIntersecting(LineSegment2D(lineSegStart, lineSegEnd));
 	}
 
 	for (std::map<int, const AreaTransition*>::const_iterator itr = areaTransitions.begin(); itr != areaTransitions.end() && !overlaps; itr++) {
 		const AreaTransition* transition = itr->second;
 		if (!transition || transition->coordinates.size() < 2)
 			continue;
-		overlaps = utils::edgeTouchesLineString(lineSegStart, lineSegEnd, transition->coordinates);
+		overlaps = Polygon2D(transition->coordinates).isIntersecting(LineSegment2D(lineSegStart, lineSegEnd));
 	}
 
 	return overlaps;
 }
 
-bool OcclusionRegion::getFirstPointOfContactWithLineString(std::vector<Pos> lineString, Pos& contactPoint) const {
+bool OcclusionRegion::getFirstPointOfContactWithLineString(std::vector<Point2D> lineString, Point2D& contactPoint) const {
 	bool success = false;
 	for (unsigned int i = 0; (i+1) < lineString.size(); i++) {
-		Pos closestContactPoint;
+		Point2D closestContactPoint;
 		if (getFirstPointOfContactWithLineSegment(lineString[i], lineString[i + 1], closestContactPoint)) {
 			contactPoint = closestContactPoint;
 			success = true;
@@ -210,17 +217,18 @@ bool OcclusionRegion::getFirstPointOfContactWithLineString(std::vector<Pos> line
 	return success;
 }
 
-bool OcclusionRegion::getFirstPointOfContactWithLineSegment(Pos lineSegStart, Pos lineSegEnd, Pos& contactPoint) const {
-	std::map<int, Pos> contactPoints;
+bool OcclusionRegion::getFirstPointOfContactWithLineSegment(Point2D lineSegStart, Point2D lineSegEnd, Point2D& contactPoint) const {
+	std::map<int, Point2D> contactPoints;
+	LineSegment2D segment(lineSegStart, lineSegEnd);
 
 	for (std::map<int, const ZoneLine*>::const_iterator itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
 		const ZoneLine* occlusionLine = itr->second;
 		if (!occlusionLine || occlusionLine->getCoordinatesRef().size() < 2)
 			continue;
 
-		Pos closestContactPoint;
-		if (getNearestIntersectionPoint(lineSegStart, lineSegEnd, occlusionLine->getCoordinatesRef(), closestContactPoint)) {
-			contactPoints.insert(std::make_pair(lineSegStart.dist(closestContactPoint), closestContactPoint));
+		Point2D closestContactPoint;
+		if (Polygon2D(occlusionLine->getCoordinatesRef()).getClosestIntersectionPoint(segment, closestContactPoint)) {
+			contactPoints.insert(std::make_pair(lineSegStart.getCartDist(closestContactPoint), closestContactPoint));
 		}
 	}
 
@@ -229,9 +237,9 @@ bool OcclusionRegion::getFirstPointOfContactWithLineSegment(Pos lineSegStart, Po
 		if (!transition || transition->coordinates.size() < 2)
 			continue;
 
-		Pos closestContactPoint;
-		if (getNearestIntersectionPoint(lineSegStart, lineSegEnd, transition->coordinates, closestContactPoint)) {
-			contactPoints.insert(std::make_pair(lineSegStart.dist(closestContactPoint), closestContactPoint));
+		Point2D closestContactPoint;
+		if (Polygon2D(transition->coordinates).getClosestIntersectionPoint(segment, closestContactPoint)) {
+			contactPoints.insert(std::make_pair(lineSegStart.getCartDist(closestContactPoint), closestContactPoint));
 		}
 	}
 
@@ -242,7 +250,7 @@ bool OcclusionRegion::getFirstPointOfContactWithLineSegment(Pos lineSegStart, Po
 	return !contactPoints.empty();
 }
 
-double OcclusionRegion::dist(const Pos& queryPoint) const {
+double OcclusionRegion::dist(const Point2D& queryPoint) const {
 	double minDist = std::numeric_limits<double>::max();
 	for (std::map<int, const ZoneLine*>::const_iterator itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
 		const ZoneLine* occlusionLine = itr->second;
@@ -250,7 +258,7 @@ double OcclusionRegion::dist(const Pos& queryPoint) const {
 			continue;
 
 		for (unsigned int i = 0; i < occlusionLine->getCoordinatesRef().size(); i++) {
-			double dist = queryPoint.dist(occlusionLine->getCoordinatesRef()[i]);
+			double dist = queryPoint.getCartDist(occlusionLine->getCoordinatesRef()[i]);
 			if (dist < minDist) {
 				minDist = dist;
 			}
@@ -263,7 +271,7 @@ double OcclusionRegion::dist(const Pos& queryPoint) const {
 			continue;
 
 		for (unsigned int i = 0; i < transition->coordinates.size(); i++) {
-			double dist = queryPoint.dist(transition->coordinates[i]);
+			double dist = queryPoint.getCartDist(transition->coordinates[i]);
 			if (dist < minDist) {
 				minDist = dist;
 			}
@@ -273,9 +281,9 @@ double OcclusionRegion::dist(const Pos& queryPoint) const {
 	return minDist;
 }
 
-bool OcclusionRegion::contains(const Pos& point) const {
+bool OcclusionRegion::contains(const Point2D& point) const {
 	if (!polyCoordinates.empty()) {
-		return kelojson::utils::pointInPolygon(point, polyCoordinates);
+		return Polygon2D(polyCoordinates).containsPoint(point);
 	}
 	return false;
 }
@@ -287,7 +295,7 @@ bool OcclusionRegion::empty() const {
 bool OcclusionRegion::generatePolygonCoords() {
 	polyCoordinates.clear(); // clear previously generated poly coordinates
 
-	std::vector< std::vector<Pos> > lineStrings;
+	std::vector< std::vector<Point2D> > lineStrings;
 	for (std::map<int, const kelojson::ZoneLine*>::const_iterator itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
 		const kelojson::ZoneLine* line = itr->second;
 		if (line && line->getCoordinatesRef().size() > 1) {
@@ -313,11 +321,11 @@ bool OcclusionRegion::generatePolygonCoords() {
 	lineStringOrder.push_back(testLineId);
 	reverse.push_back(false);
 	do {
-		const std::vector<Pos>& lastLine = lineStrings[lineStringOrder.back()];
+		const std::vector<Point2D>& lastLine = lineStrings[lineStringOrder.back()];
 		isConnected = false;
 		for (unsigned int i = 0; i < lineStrings.size(); i++) {
 			if (std::find(lineStringOrder.begin(), lineStringOrder.end(), i) == lineStringOrder.end()) {
-				const std::vector<Pos>& newTestLine = lineStrings[i];
+				const std::vector<Point2D>& newTestLine = lineStrings[i];
 				if (lineStringOrder.size() == 1) { // first line?
 					isConnected = lastLine.front() == newTestLine.front() ||
 								  lastLine.front() == newTestLine.back() ||
@@ -334,7 +342,7 @@ bool OcclusionRegion::generatePolygonCoords() {
 										  lastLine.back() == newTestLine.back());
 					}
 				} else {
-					const Pos& lineEndPt = reverse.back() ? lastLine.front() : lastLine.back();
+					const Point2D& lineEndPt = reverse.back() ? lastLine.front() : lastLine.back();
 
 					isConnected = lineEndPt == newTestLine.front() ||
 								  lineEndPt == newTestLine.back();
@@ -357,7 +365,7 @@ bool OcclusionRegion::generatePolygonCoords() {
 
 	if (success) {
 		for (unsigned int i = 0; i < lineStringOrder.size(); i++) {
-			const std::vector<Pos>& line = lineStrings[lineStringOrder[i]];
+			const std::vector<Point2D>& line = lineStrings[lineStringOrder[i]];
 			if (reverse[i]) {
 				int j = polyCoordinates.empty() ? line.size() - 1 : line.size() - 2;
 				for ( ; j >= 0; j--) {
@@ -375,7 +383,7 @@ bool OcclusionRegion::generatePolygonCoords() {
 	return success;
 }
 
-const std::vector<Pos>& OcclusionRegion::asPolygon() const {
+const std::vector<Point2D>& OcclusionRegion::asPolygon() const {
 	return polyCoordinates;
 }
 
@@ -422,7 +430,7 @@ void ZonesLayer::loadOsmNodes(const Map& map) {
 											new ZoneNode(node->primitiveId,
 														 getZoneType(node),
 														 osm::primitiveType::NODE,
-														 Pose(node->position, theta),
+														 Pose2D(node->position.x, node->position.y, theta),
 														 getZoneName(node))));
 			nSuccess++;
 		}
@@ -449,7 +457,7 @@ void ZonesLayer::loadOsmWays(const Map& map) {
 		if (!way || (way->wayType != "Polygon" && way->wayType != "LineString"))
 			continue;
 
-		std::vector<Pos> coordinates;
+		std::vector<Point2D> coordinates;
 		bool success = true;
 		for (unsigned int i = 0; i < way->nodeIds.size(); i++) {
 			const osm::Node* node = map.getOsmNode(way->nodeIds[i]);
@@ -528,7 +536,7 @@ std::vector<const ZoneLine*> ZonesLayer::getAllOcclusionLines() const {
 	return getLines(zoneTypes::OCCLUSION);
 }
 
-std::vector< std::vector<const ZoneLine*> > ZonesLayer::getIntersectingOcclusionLines(const std::vector<Pos>& path) const {
+std::vector< std::vector<const ZoneLine*> > ZonesLayer::getIntersectingOcclusionLines(const std::vector<Point2D>& path) const {
 	std::vector< std::vector<const ZoneLine*> > lines;
 
 	if (path.size() < 2)
@@ -537,14 +545,14 @@ std::vector< std::vector<const ZoneLine*> > ZonesLayer::getIntersectingOcclusion
 	std::vector<const ZoneLine*> occlusions = getAllOcclusionLines();
 	for (unsigned int i = 0; (i + 1) < path.size(); i++) {
 		std::vector<const ZoneLine*> segIntersections;
-		Pos segStart = path[i];
-		Pos segEnd = path[i + 1];
+		Point2D segStart = path[i];
+		Point2D segEnd = path[i + 1];
 
 		for (unsigned int j = 0; j < occlusions.size(); j++) {
 			if (!occlusions[j] || occlusions[j]->getCoordinatesRef().size() < 2)
 				continue;
 
-			if (utils::edgeTouchesLineString(segStart, segEnd, occlusions[j]->getCoordinatesRef())) {
+			if (Polygon2D(occlusions[j]->getCoordinatesRef()).isIntersecting(LineSegment2D(segStart, segEnd))) {
 				segIntersections.push_back(occlusions[j]);
 			}
 		}
@@ -554,17 +562,17 @@ std::vector< std::vector<const ZoneLine*> > ZonesLayer::getIntersectingOcclusion
 	return lines;
 }
 
-std::vector< std::vector<const ZoneLine*> > ZonesLayer::getIntersectingOcclusionLines(const std::vector<Pose>& path) const {
-	std::vector<Pos> positionList;
+std::vector< std::vector<const ZoneLine*> > ZonesLayer::getIntersectingOcclusionLines(const std::vector<Pose2D>& path) const {
+	std::vector<Point2D> positionList;
 	positionList.reserve(path.size());
 	for (unsigned int i = 0; i < path.size(); i++) {
-		positionList.push_back(path[i].p);
+		positionList.push_back(Point2D(path[i].x, path[i].y));
 	}
 
 	return getIntersectingOcclusionLines(positionList);
 }
 
-std::vector<const ZoneLine*> ZonesLayer::getNearestOcclusionLines(const Pos& queryPosition, double searchRadius) const {
+std::vector<const ZoneLine*> ZonesLayer::getNearestOcclusionLines(const Point2D& queryPosition, double searchRadius) const {
 	std::vector<const ZoneLine*> lines;
 	std::multimap<double, const ZoneLine*> nearestLineMap; // sort and store the nearest lines
 
@@ -574,7 +582,7 @@ std::vector<const ZoneLine*> ZonesLayer::getNearestOcclusionLines(const Pos& que
 			continue;
 
 		for (unsigned int j = 0; j < occlusions[i]->getCoordinatesRef().size(); j++) {
-			double dist = queryPosition.dist(occlusions[i]->getCoordinatesRef()[j]);
+			double dist = queryPosition.getCartDist(occlusions[i]->getCoordinatesRef()[j]);
 			if (dist <= searchRadius) {
 				nearestLineMap.insert(std::make_pair(dist, occlusions[i]));
 				break;
@@ -606,7 +614,7 @@ const std::map<int, OcclusionRegion>& ZonesLayer::getAllOcclusionRegions() const
 	return occlusionRegions;
 }
 
-std::vector< std::vector<const OcclusionRegion*> > ZonesLayer::getIntersectingOcclusionRegions(const std::vector<Pos>& path) const {
+std::vector< std::vector<const OcclusionRegion*> > ZonesLayer::getIntersectingOcclusionRegions(const std::vector<Point2D>& path) const {
 	std::vector< std::vector<const OcclusionRegion*> > regions;
 
 	if (path.size() < 2)
@@ -614,12 +622,12 @@ std::vector< std::vector<const OcclusionRegion*> > ZonesLayer::getIntersectingOc
 
 	for (unsigned int i = 0; (i + 1) < path.size(); i++) {
 		std::multimap<double, const OcclusionRegion*> intersectingOcclusions;
-		Pos segStart = path[i];
-		Pos segEnd = path[i + 1];
+		Point2D segStart = path[i];
+		Point2D segEnd = path[i + 1];
 		for (std::map<int, OcclusionRegion>::const_iterator itr = occlusionRegions.begin(); itr != occlusionRegions.end(); itr++) {
-			Pos contactPoint;
+			Point2D contactPoint;
 			if (itr->second.getFirstPointOfContactWithLineSegment(segStart, segEnd, contactPoint)) {
-				intersectingOcclusions.insert(std::make_pair(segStart.dist(contactPoint), &(itr->second)));
+				intersectingOcclusions.insert(std::make_pair(segStart.getCartDist(contactPoint), &(itr->second)));
 			}
 		}
 		std::vector<const OcclusionRegion*> sortedIntersectingOcclusions;
@@ -632,17 +640,17 @@ std::vector< std::vector<const OcclusionRegion*> > ZonesLayer::getIntersectingOc
 	return regions;
 }
 
-std::vector< std::vector<const OcclusionRegion*> > ZonesLayer::getIntersectingOcclusionRegions(const std::vector<Pose>& path) const {
-	std::vector<Pos> positionList;
+std::vector< std::vector<const OcclusionRegion*> > ZonesLayer::getIntersectingOcclusionRegions(const std::vector<Pose2D>& path) const {
+	std::vector<Point2D> positionList;
 	positionList.reserve(path.size());
 	for (unsigned int i = 0; i < path.size(); i++) {
-		positionList.push_back(path[i].p);
+		positionList.push_back(Point2D(path[i].x, path[i].y));
 	}
 
 	return getIntersectingOcclusionRegions(positionList);
 }
 
-std::vector<const OcclusionRegion*> ZonesLayer::getNearestOcclusionRegions(const Pos& queryPosition, double searchRadius) const {
+std::vector<const OcclusionRegion*> ZonesLayer::getNearestOcclusionRegions(const Point2D& queryPosition, double searchRadius) const {
 	std::vector<const OcclusionRegion*> regions;
 	std::multimap<double, const OcclusionRegion*> nearestRegionsMap; // sort and store the nearest lines
 
@@ -660,8 +668,8 @@ std::vector<const OcclusionRegion*> ZonesLayer::getNearestOcclusionRegions(const
 	return regions;
 }
 
-std::vector< std::vector<Pos> > ZonesLayer::getOcclusionPointAlongPath(const std::vector<Pos>& path) const {
-	std::vector< std::vector<Pos> > edgeOcclusions(path.size() - 1);
+std::vector< std::vector<Point2D> > ZonesLayer::getOcclusionPointAlongPath(const std::vector<Point2D>& path) const {
+	std::vector< std::vector<Point2D> > edgeOcclusions(path.size() - 1);
 
 	std::vector < std::vector<const OcclusionRegion*> > occRegions = getIntersectingOcclusionRegions(path);
 	if (occRegions.size() != path.size() - 1)
@@ -671,7 +679,7 @@ std::vector< std::vector<Pos> > ZonesLayer::getOcclusionPointAlongPath(const std
 	for (unsigned int edgeIdx = 0; (edgeIdx + 1) < path.size(); edgeIdx++) {
 		std::vector<const OcclusionRegion*> intersectingOcclusions = occRegions[edgeIdx];
 		if (!intersectingOcclusions.empty()) {
-			std::vector<Pos>& intersectionPts = edgeOcclusions[edgeIdx];
+			std::vector<Point2D>& intersectionPts = edgeOcclusions[edgeIdx];
 			for (unsigned int occIdx = 0; occIdx < intersectingOcclusions.size(); occIdx++) {
 				const OcclusionRegion* occlusion = intersectingOcclusions[occIdx];
 				if (!occlusion || std::find(processedOccRegions.begin(),
@@ -679,13 +687,13 @@ std::vector< std::vector<Pos> > ZonesLayer::getOcclusionPointAlongPath(const std
 											occlusion->getFeatureId()) != processedOccRegions.end())
 					continue;
 
-				Pos intPoint;
+				Point2D intPoint;
 				if (occlusion->getFirstPointOfContactWithLineSegment(path[edgeIdx],
 										 							 path[edgeIdx + 1],
 																	 intPoint)) {
-					Pos revDirection = (path[edgeIdx] - intPoint);
-					revDirection.normalize();
-					Pos pointBeforeIntersection = intPoint + revDirection * 0.05; // 5 cm before intersection
+					Point2D revDirection = (path[edgeIdx] - intPoint);
+					revDirection.normalise();
+					Point2D pointBeforeIntersection = intPoint + revDirection * 0.05; // 5 cm before intersection
 					if (!occlusion->contains(pointBeforeIntersection)) {
 						// Add the intersection point only when entering an occlusion region for first time
 						intersectionPts.push_back(intPoint);
@@ -698,17 +706,17 @@ std::vector< std::vector<Pos> > ZonesLayer::getOcclusionPointAlongPath(const std
 	return edgeOcclusions;
 }
 
-std::vector< std::vector<Pos> > ZonesLayer::getOcclusionPointAlongPath(const std::vector<Pose>& path) const {
-	std::vector<Pos> positionList;
+std::vector< std::vector<Point2D> > ZonesLayer::getOcclusionPointAlongPath(const std::vector<Pose2D>& path) const {
+	std::vector<Point2D> positionList;
 	positionList.reserve(path.size());
 	for (unsigned int i = 0; i < path.size(); i++) {
-		positionList.push_back(path[i].p);
+		positionList.push_back(Point2D(path[i].x, path[i].y));
 	}
 
 	return getOcclusionPointAlongPath(positionList);
 }
 
-bool ZonesLayer::getFirstOcclusionPointAlongPath(const std::vector<Pos>& path, Pos& occlusionPoint) const {
+bool ZonesLayer::getFirstOcclusionPointAlongPath(const std::vector<Point2D>& path, Point2D& occlusionPoint) const {
 	std::vector < std::vector<const OcclusionRegion*> > occRegions = getIntersectingOcclusionRegions(path);
 	if (occRegions.size() != path.size() - 1)
 		return false;
@@ -720,13 +728,13 @@ bool ZonesLayer::getFirstOcclusionPointAlongPath(const std::vector<Pos>& path, P
 			if (!occlusion)
 				continue;
 
-			Pos intPoint;
+			Point2D intPoint;
 			if (occlusion->getFirstPointOfContactWithLineSegment(path[edgeIdx],
 									 							 path[edgeIdx + 1],
 																 intPoint)) {
-				Pos revDirection = (path[edgeIdx] - intPoint);
-				revDirection.normalize();
-				Pos pointBeforeIntersection = intPoint + revDirection * 0.05; // 5 cm before intersection
+				Point2D revDirection = (path[edgeIdx] - intPoint);
+				revDirection.normalise();
+				Point2D pointBeforeIntersection = intPoint + revDirection * 0.05; // 5 cm before intersection
 				if (!occlusion->contains(pointBeforeIntersection)) {
 					occlusionPoint = intPoint;
 					return true;
@@ -737,11 +745,11 @@ bool ZonesLayer::getFirstOcclusionPointAlongPath(const std::vector<Pos>& path, P
 	return false;
 }
 
-bool ZonesLayer::getFirstOcclusionPointAlongPath(const std::vector<Pose>& path, Pos& occlusionPoint) const {
-	std::vector<Pos> positionList;
+bool ZonesLayer::getFirstOcclusionPointAlongPath(const std::vector<Pose2D>& path, Point2D& occlusionPoint) const {
+	std::vector<Point2D> positionList;
 	positionList.reserve(path.size());
 	for (unsigned int i = 0; i < path.size(); i++) {
-		positionList.push_back(path[i].p);
+		positionList.push_back(Point2D(path[i].x, path[i].y));
 	}
 
 	return getFirstOcclusionPointAlongPath(positionList, occlusionPoint);
@@ -763,7 +771,7 @@ std::vector<const Ramp*> ZonesLayer::getAllRamps() const {
 	return ramps;
 }
 
-std::vector<const Ramp*> ZonesLayer::getIntersectingRamps(const Pos& start, const Pos& end) const {
+std::vector<const Ramp*> ZonesLayer::getIntersectingRamps(const Point2D& start, const Point2D& end) const {
 	std::vector<const Ramp*> ramps = getAllRamps();
 	for (std::vector<const Ramp*>::iterator itr = ramps.begin(); itr != ramps.end(); ) {
 		const Ramp* ramp = *itr;
@@ -776,7 +784,7 @@ std::vector<const Ramp*> ZonesLayer::getIntersectingRamps(const Pos& start, cons
 	return ramps;
 }
 
-std::vector<const Ramp*> ZonesLayer::getIntersectingRamps(const std::vector<Pos>& lineString) const {
+std::vector<const Ramp*> ZonesLayer::getIntersectingRamps(const std::vector<Point2D>& lineString) const {
 	std::vector<const Ramp*> intersectingRamps;
 	if (lineString.size() < 2)
 		return intersectingRamps;
@@ -790,7 +798,7 @@ std::vector<const Ramp*> ZonesLayer::getIntersectingRamps(const std::vector<Pos>
 	return intersectingRamps;
 }
 
-bool ZonesLayer::insideForbiddenArea(const Pos& pos) const {
+bool ZonesLayer::insideForbiddenArea(const Point2D& pos) const {
 	std::vector<const ZonePolygon*> forbiddenAreas = getAllForbiddenAreas();
 	for (unsigned int i = 0; i < forbiddenAreas.size(); i++) {
 		if (forbiddenAreas[i] && forbiddenAreas[i]->contains(pos)) {
