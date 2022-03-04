@@ -55,7 +55,12 @@ include_directories(
 )
 
 add_library(kelojson_loader
+    src/KelojsonAreasLayer.cpp
     src/KelojsonLayer.cpp
+    src/KelojsonMap.cpp
+    src/KelojsonTypes.cpp
+    src/KelojsonTopologyLayer.cpp
+    src/KelojsonZonesLayer.cpp
     src/OsmPrimitives.cpp
 )
 
