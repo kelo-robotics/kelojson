@@ -1,0 +1,63 @@
+#ifndef KELOJSONLAYER_H_
+#define KELOJSONLAYER_H_
+
+#include "OsmPrimitives.h"
+#include "KelojsonTypes.h"
+
+namespace kelojson {
+
+	// Forward declarations
+	class Map;
+
+	class OccupancyGrid {
+	public:
+		int featureId;
+		std::string filename;
+		double freeThreshold;
+		double occupiedThreshold;
+		bool negate;
+		std::string name;
+		double resolution;
+		Pose origin;
+	};
+
+
+	class Layer {
+	public:
+		Layer(layerType::LayerType type, const Map* map);
+		virtual ~Layer() {}
+
+		void addOsmPrimitive(const osm::Primitive* primitive);
+		virtual void loadFeatures(const Map& map);
+		virtual void loadGeometries(const Map& /*map*/) {}
+		virtual void loadRelations(const Map& /*map*/) {}
+
+		unsigned int getNumOsmPrimitives(osm::primitiveType::PrimitiveType primType);
+
+		const Map* kelojsonMap;
+		layerType::LayerType layerType;
+		std::map<osm::primitiveType::PrimitiveType, std::vector<int> > osmPrimitives;
+	};
+
+	class OccupancyGridLayer : public Layer {
+	public:
+		OccupancyGridLayer(const Map* map);
+		virtual ~OccupancyGridLayer() {}
+		
+		virtual void loadGeometries(const Map& map) /*override*/;
+		virtual void loadRelations(const Map& map) /*override*/;
+
+		std::map<int, OccupancyGrid> occupancyGrids;
+	};
+
+	// class SubAreasLayer : public Layer {
+	// public:
+	// 	SubAreasLayer();
+	// 	~SubAreasLayer(){}
+
+	// 	virtual void loadGeometries(const Map& map) /*override*/;
+	// 	virtual void loadRelations(const Map& map) /*override*/;
+	// };
+}
+
+#endif // KELOJSONLAYER_H_
