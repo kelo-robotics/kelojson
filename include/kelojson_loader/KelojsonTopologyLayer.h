@@ -46,8 +46,6 @@ namespace kelojson {
 		virtual void loadGeometries(const Map& map) /*override*/;
 		virtual void loadRelations(const Map& map) /*override*/;
 
-		void extractGraphElements(std::vector<Pose2D>& nodes, std::vector<Edge>& edges) const;
-
 		std::vector<int> getNodesInArea(const Area* area) const;
 		std::vector<unsigned int> getEdgesInArea(const Area* area, bool fullyContained = false) const;
 
@@ -57,22 +55,14 @@ namespace kelojson {
 		bool getEdgeId(int startOsmNodeId, int endOsmNodeId, unsigned int& edgeId) const;
 
 		const TopologyNode* getClosestNodeInArea(const Point2D& point) const;
-		const TopologyEdge* getClosestEdgeInArea(const Point2D& point, const std::vector<BlockedEdge>& blockedEdges = std::vector<BlockedEdge>()) const;
+		const TopologyEdge* getClosestEdgeInArea(const Point2D& point, const std::vector<int>& blockedEdges = std::vector<int>()) const;
 		std::vector<unsigned int> getConnectedEdges(const TopologyNode& node) const;
 
 		double minDistanceToEdge(const Point2D& point, int edgeId) const;
 
-		Plan computePath(int startNodeFeatureId, int endNodeFeatureId, const std::vector<BlockedEdge>& blockedEdges = std::vector<BlockedEdge>()) const;
-		Plan computePath(const Point2D& start, const Point2D& end, const std::vector<BlockedEdge>& blockedEdges = std::vector<BlockedEdge>()) const;
-
-		// Returns a point on the the path that is closest to query point
-		Point2D getNearestPointOnPath(const Plan& path, const Point2D& point) const;
-
 		std::vector< std::vector<const kelojson::AreaTransition*> > getAreaTransitionsAlongPath(const std::vector<Point2D>& path) const;
-		std::vector< std::vector<const kelojson::AreaTransition*> > getAreaTransitionsAlongPath(const Plan& path) const;
 
 		std::vector< std::vector<const Ramp*> > getRampsAlongPath(const std::vector<Point2D>& path) const;
-		std::vector< std::vector<const Ramp*> > getRampsAlongPath(const Plan& path) const;
 
 		TopologyNodeMap topologyNodes;
 		TopologyEdgeMap topologyEdges;

@@ -119,12 +119,8 @@ namespace kelojson {
 	typedef std::map<unsigned int, TopologyEdge>::iterator TopologyEdgeMapItr;
 	typedef std::map<unsigned int, TopologyEdge>::const_iterator TopologyEdgeMapConstItr;
 
-    using Point2D = kelo::geometry_common::Point2D;
-    using Pose2D = kelo::geometry_common::Pose2D;
-
-    class Edge;
-    using BlockedEdge = int;
-    using Plan = std::vector<int>;
+	using Point2D = kelo::geometry_common::Point2D;
+	using Pose2D = kelo::geometry_common::Pose2D;
 }
 
 #endif //KELO_KELOJSON_TYPES_H

@@ -1,17 +1,21 @@
+#include <iostream>
+#include <geometry_common/LineSegment2D.h>
+
 #include "kelojson_loader/KelojsonMap.h"
 #include "kelojson_loader/KelojsonAreasLayer.h"
 #include "kelojson_loader/KelojsonTopologyLayer.h"
-#include <iostream>
+
+using LineSegment2D = kelo::geometry_common::LineSegment2D;
 
 namespace kelojson {
 
 TopologyNode::TopologyNode()
-: position(Pos())
+: position(Point2D())
 , featureId(0) {
 
 }
 
-TopologyNode::TopologyNode(int id, const Pos& pos) 
+TopologyNode::TopologyNode(int id, const Point2D& pos) 
 : position(pos)
 , featureId(id) {
 
@@ -106,20 +110,6 @@ void TopologyLayer::loadRelations(const Map& map) {
 	loadInterlayerAssociations(map);
 }
 
-void TopologyLayer::extractGraphElements(std::vector<Pose>& nodes, std::vector<Edge>& edges) const {
-	for (TopologyNodeMapConstItr itr = topologyNodes.begin(); itr != topologyNodes.end(); itr++) {
-		nodes.push_back(Pose(itr->second.position, 0)); // topology nodes in kelojson do not have orientation information
-	}
-
-	for (TopologyEdgeMapConstItr itr = topologyEdges.begin(); itr != topologyEdges.end(); itr++) {
-		Edge edge;
-		edge.nodeA = nodeInternalIdMap.at(itr->second.startNodeId);
-		edge.nodeB = nodeInternalIdMap.at(itr->second.endNodeId);
-		edge.cost = 0; // edges in kelojson map do not have costs yet
-		edges.push_back(edge);
-	}
-}
-
 std::vector<int> TopologyLayer::getNodesInArea(const Area* area) const {
 	std::vector<int> nodes;
 	for (TopologyNodeMapConstItr itr = topologyNodes.begin(); itr != topologyNodes.end(); itr++) {
@@ -174,10 +164,18 @@ bool TopologyLayer::getOsmNodeId(unsigned int internalNodeId, int& osmNodeId) co
 }
 
 bool TopologyLayer::getEdgeId(int startOsmNodeId, int endOsmNodeId, unsigned int& edgeId) const {
-	return utils::getEdgeId(topologyEdges, startOsmNodeId, endOsmNodeId, edgeId);
+	for (TopologyEdgeMapConstItr itr = topologyEdges.begin(); itr != topologyEdges.end(); itr++) {
+		const TopologyEdge& edge = itr->second;
+		if ((edge.startNodeId == startOsmNodeId && edge.endNodeId == endOsmNodeId) ||
+			(edge.startNodeId == endOsmNodeId && edge.endNodeId == startOsmNodeId)) {
+			edgeId = edge.edgeId;
+			return true;
+		}
+	}
+	return false;
 }
 
-const TopologyNode* TopologyLayer::getClosestNodeInArea(const Pos& point) const {
+const TopologyNode* TopologyLayer::getClosestNodeInArea(const Point2D& point) const {
 	const TopologyNode* closestNode = NULL;
 	if (kelojsonMap != NULL && kelojsonMap->getAreasLayer() != NULL) {
 		const Area* area = kelojsonMap->getAreasLayer()->getArea(point);
@@ -187,7 +185,7 @@ const TopologyNode* TopologyLayer::getClosestNodeInArea(const Pos& point) const 
 				double leastDistance = std::numeric_limits<double>::max();
 				for (unsigned int i = 0; i < nodeIds.size(); i++) {
 					const TopologyNode& node = topologyNodes.at(nodeIds[i]);
-					double dist = node.position.dist(point);
+					double dist = node.position.getCartDist(point);
 					if (dist < leastDistance) {
 						leastDistance = dist;
 						closestNode = &node;
@@ -199,7 +197,7 @@ const TopologyNode* TopologyLayer::getClosestNodeInArea(const Pos& point) const 
 	return closestNode;
 }
 
-const TopologyEdge* TopologyLayer::getClosestEdgeInArea(const Pos& point, const std::vector<BlockedEdge>& blockedEdges) const {
+const TopologyEdge* TopologyLayer::getClosestEdgeInArea(const Point2D& point, const std::vector<int>& blockedEdges) const {
 	const TopologyEdge* closestEdge = NULL;
 	if (kelojsonMap != NULL && kelojsonMap->getAreasLayer() != NULL) {
 		const Area* area = kelojsonMap->getAreasLayer()->getArea(point);
@@ -210,7 +208,7 @@ const TopologyEdge* TopologyLayer::getClosestEdgeInArea(const Pos& point, const 
 				for (unsigned int i = 0; i < edgeIds.size(); i++) {
 					bool isBlocked = false;
 					for (unsigned int bId = 0; bId < blockedEdges.size(); bId++) {
-						if ((int)edgeIds[i] == blockedEdges[bId].edge) {
+						if ((int)edgeIds[i] == blockedEdges[bId]) {
 							isBlocked = true;
 							break;
 						}
@@ -239,85 +237,22 @@ std::vector<unsigned int> TopologyLayer::getConnectedEdges(const TopologyNode& n
 	return edges;
 }
 
-double TopologyLayer::minDistanceToEdge(const Pos& point, int edgeId) const {
+double TopologyLayer::minDistanceToEdge(const Point2D& point, int edgeId) const {
 	if (topologyEdges.find(edgeId) == topologyEdges.end())
 		return std::numeric_limits<double>::max();
 
 	const TopologyEdge& edge = topologyEdges.at(edgeId);
 	const TopologyNode& start = topologyNodes.at(edge.startNodeId);
 	const TopologyNode& end = topologyNodes.at(edge.endNodeId);
-	return minDistanceToLineSegment(start.position, end.position, point);
+	return LineSegment2D(start.position, end.position).getMinDistFrom(point);
 }
 
-SearchGraph::Plan TopologyLayer::computePath(int startNodeFeatureId, int endNodeFeatureId, const std::vector<BlockedEdge>& blockedEdges) const {
-	std::vector<Pose> nodes;
-	std::vector<Edge> edges;
-	extractGraphElements(nodes, edges);
-
-	// Find a plan
-	SearchGraph graph(nodes, edges, blockedEdges);
-	SearchGraph::Plan plan = graph.astarSearch(nodeInternalIdMap.at(startNodeFeatureId), nodeInternalIdMap.at(endNodeFeatureId));
-
-	// Convert node ids in the plan to kelojson ids 
-	SearchGraph::Plan remappedPlan;
-	for (SearchGraph::Plan::const_iterator itr = plan.begin(); itr != plan.end(); itr++) {
-		remappedPlan.push_back(nodeFeatureIdMap.at(*itr));
-	}
-	return remappedPlan;
-}
-
-SearchGraph::Plan TopologyLayer::computePath(const Pos& start, const Pos& end, const std::vector<BlockedEdge>& blockedEdges) const {
-	SearchGraph::Plan path;
-	const TopologyEdge* startAreaEdge = getClosestEdgeInArea(start, blockedEdges);
-	const TopologyEdge* endAreaEdge = getClosestEdgeInArea(end, blockedEdges);
-
-	if (startAreaEdge != NULL && endAreaEdge != NULL) {
-		path = computePath(startAreaEdge->startNodeId, endAreaEdge->endNodeId, blockedEdges);
-		if (! path.empty()) {
-			if (std::find(path.begin(), path.end(), startAreaEdge->endNodeId) == path.end()) {
-				// Plan does not contain the end nodeid of the start edge. Hence add it as the first node of the plan
-				path.insert(path.begin(), startAreaEdge->endNodeId);
-			}
-			if (std::find(path.begin(), path.end(), endAreaEdge->startNodeId) == path.end()) {
-				// Plan does not contain the start nodeid of the end edge. Hence add it as the last node of the plan
-				path.insert(path.end(), endAreaEdge->startNodeId);
-			}
-		}
-	}
-	else {
-		const TopologyNode* startNode = getClosestNodeInArea(start);
-		const TopologyNode* endNode = getClosestNodeInArea(end);
-		if (startNode != NULL && endNode != NULL) {
-			path = computePath(startNode->featureId, endNode->featureId, blockedEdges);
-		}
-	}
-
-	return path;
-}
-
-Pos TopologyLayer::getNearestPointOnPath(const SearchGraph::Plan& path, const Pos& point) const {
-	std::pair<Pos, Pos> closestEdge;
-	double shortestDist = std::numeric_limits<double>::max();
-
-	for (unsigned int i = 0; i + 1 < path.size(); i++) {
-		Pos startNode = topologyNodes.at(path[i]).position;
-		Pos endNode = topologyNodes.at(path[i + 1]).position;
-
-		double dist = minDistanceToLineSegment(startNode, endNode, point);
-		if (dist < shortestDist) {
-			shortestDist = dist;
-			closestEdge = std::make_pair(startNode, endNode);
-		}
-	}
-	return closestPointOnLineSegment(closestEdge.first, closestEdge.second, point);
-}
-
-std::vector< std::vector<const kelojson::AreaTransition*> > TopologyLayer::getAreaTransitionsAlongPath(const std::vector<Pos>& path) const {
+std::vector< std::vector<const kelojson::AreaTransition*> > TopologyLayer::getAreaTransitionsAlongPath(const std::vector<Point2D>& path) const {
 	std::vector< std::vector<const kelojson::AreaTransition*> > transitionList;
 	if (kelojsonMap != NULL) {
 		for (unsigned int nodeId = 0; nodeId + 1 < path.size(); nodeId++) {
-			Pos start = path[nodeId];
-			Pos end = path[nodeId + 1];
+			Point2D start = path[nodeId];
+			Point2D end = path[nodeId + 1];
 			std::vector<const kelojson::AreaTransition*> transitionsOnEdge = kelojsonMap->getAreasLayer()->getIntersectingAreaTransitions(start, end);
 			transitionList.push_back(transitionsOnEdge);
 		}
@@ -325,35 +260,19 @@ std::vector< std::vector<const kelojson::AreaTransition*> > TopologyLayer::getAr
 	return transitionList;
 }
 
-std::vector< std::vector<const kelojson::AreaTransition*> > TopologyLayer::getAreaTransitionsAlongPath(const SearchGraph::Plan& path) const {
-	std::vector<Pos> positions;
-	for (unsigned int nodeId = 0; nodeId + 1 < path.size(); nodeId++) {
-		positions.push_back(topologyNodes.at(path[nodeId]).position);
-	}
-	return getAreaTransitionsAlongPath(positions);
-}
-
-std::vector< std::vector<const Ramp*> > TopologyLayer::getRampsAlongPath(const std::vector<Pos>& path) const {
+std::vector< std::vector<const Ramp*> > TopologyLayer::getRampsAlongPath(const std::vector<Point2D>& path) const {
 	std::vector< std::vector<const Ramp*> > rampList;
 	if (kelojsonMap != NULL && 
 		kelojsonMap->getZonesLayer() != NULL && 
 		kelojsonMap->getZonesLayer()->hasRamps()) {
 		for (unsigned int nodeId = 0; nodeId + 1 < path.size(); nodeId++) {
-			Pos start = path[nodeId];
-			Pos end = path[nodeId + 1];
+			Point2D start = path[nodeId];
+			Point2D end = path[nodeId + 1];
 			std::vector<const Ramp*> rampsOnEdge = kelojsonMap->getZonesLayer()->getIntersectingRamps(start, end);
 			rampList.push_back(rampsOnEdge);
 		}
 	}
 	return rampList;
-}
-
-std::vector< std::vector<const Ramp*> > TopologyLayer::getRampsAlongPath(const SearchGraph::Plan& path) const {
-	std::vector<Pos> positions;
-	for (unsigned int nodeId = 0; nodeId + 1 < path.size(); nodeId++) {
-		positions.push_back(topologyNodes.at(path[nodeId]).position);
-	}
-	return getRampsAlongPath(positions);
 }
 
 void TopologyLayer::loadInterlayerAssociations(const Map& map) {
