@@ -1,8 +1,13 @@
-#include "kelojson_loader/KelojsonMap.h"
+
 #include <fstream>
 #include <iostream>
+#include <yaml_common/Parser.h>
+
+#include "kelojson_loader/KelojsonMap.h"
 
 namespace kelojson {
+
+using YAMLParser = kelo::yaml_common::Parser;
 
 Map::Map() {
 }
@@ -29,10 +34,10 @@ bool Map::loadFromString(std::string mapString) {
 		success = success && loadOsmPrimitives(yaml);
 		if (success)
 			loadlayers();
-	} catch (YAML::InvalidScalar) {
+	} catch (YAML::InvalidScalar&) {
 		clear();
 		return false;
-	} catch (YAML::Exception) {
+	} catch (YAML::Exception&) {
 		clear();
 		return false;
 	}
@@ -126,12 +131,12 @@ bool Map::isOsmRelation(const YAML::Node& feature) const {
 
 bool Map::isOsmNode(const YAML::Node& feature) const {
 	return isOsmGeometry(feature) &&
-		   yamlGetString(feature["geometry"], "type") == "Point";
+		   YAMLParser::getString(feature["geometry"], "type") == "Point";
 }
 
 bool Map::isOsmWay(const YAML::Node& feature) const {
 	return isOsmGeometry(feature) &&
-		   yamlGetString(feature["geometry"], "type") != "Point";
+		   YAMLParser::getString(feature["geometry"], "type") != "Point";
 }
 
 const osm::Node* Map::getOsmNode(int id) const {
@@ -235,7 +240,7 @@ const OccupancyGridLayer* Map::getOccupancyLayer() const {
 // 	return NULL;
 // }
 
-bool Map::insideMap(const Pos& pos) const {
+bool Map::insideMap(const Point2D& pos) const {
 	const AreasLayer* areasLayer = getAreasLayer();
 	return areasLayer && areasLayer->contains(pos);
 }
