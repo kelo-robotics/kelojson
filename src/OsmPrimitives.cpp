@@ -1,10 +1,13 @@
+#include <yaml_common/Parser.h>
 #include "kelojson_loader/OsmPrimitives.h"
 
 namespace kelojson {
 namespace osm {
 
+using YAMLParser = kelo::yaml_common::Parser;
+
 Primitive::Primitive(const YAML::Node& feature) {
-	primitiveId = yamlGetInt(feature, "id");
+	primitiveId = YAMLParser::getInt(feature, "id");
 	tags = getOsmTags(feature);
 }
 
@@ -33,8 +36,8 @@ Node::Node()
 Node::Node(const YAML::Node& feature)
 : Primitive(feature) {
 	primitiveType = osm::primitiveType::NODE;
-	position = Pos(feature["geometry"]["coordinates"][0].as<double>(),
-				   feature["geometry"]["coordinates"][1].as<double>());
+	position = Point2D(feature["geometry"]["coordinates"][0].as<float>(),
+					   feature["geometry"]["coordinates"][1].as<float>());
 }
 
 Node::Node(const Node& node)
@@ -53,7 +56,7 @@ Way::Way()
 Way::Way(const YAML::Node& feature)
 : Primitive(feature) {
 	primitiveType = osm::primitiveType::WAY;
-	wayType = yamlGetString(feature["geometry"], "type");
+	wayType = YAMLParser::getString(feature["geometry"], "type");
 	YAML::Node nodes = feature["geometry"]["nodeIds"][0];
 	for (unsigned int i = 0; i < nodes.size(); i++) {
 		nodeIds.push_back(nodes[i].as<int>());
@@ -62,15 +65,15 @@ Way::Way(const YAML::Node& feature)
 
 std::vector<osm::Node> Way::extractNodes(const YAML::Node& feature) {
 	std::vector<osm::Node> nodes;
-	bool isPolygon = yamlGetString(feature["geometry"], "type") == "Polygon";
+	bool isPolygon = YAMLParser::getString(feature["geometry"], "type") == "Polygon";
 	YAML::Node coords = isPolygon ? feature["geometry"]["coordinates"][0] : feature["geometry"]["coordinates"];
 	YAML::Node nodeIds = feature["geometry"]["nodeIds"][0];
 
 	for (unsigned int i = 0; i < coords.size(); i++) {
 		osm::Node node;
 		node.primitiveId = nodeIds[i].as<int>();
-		node.position = Pos(coords[i][0].as<double>(),
-							coords[i][1].as<double>());
+		node.position = Point2D(coords[i][0].as<float>(),
+								coords[i][1].as<float>());
 		nodes.push_back(node);
 	}
 	return nodes;
@@ -84,7 +87,7 @@ Relation::Relation()
 Relation::Relation(const YAML::Node& feature)
 : Primitive(feature) {
 	primitiveType = osm::primitiveType::RELATION;
-	relationType = yamlGetString(feature["properties"], "type");
+	relationType = YAMLParser::getString(feature["properties"], "type");
 	YAML::Node rm = feature["relation"]["members"];
 	for (unsigned int i = 0; i < rm.size(); i++) {
 		members.push_back(RelationMember(rm[i]));
@@ -92,11 +95,11 @@ Relation::Relation(const YAML::Node& feature)
 }
 
 RelationMember::RelationMember(const YAML::Node& feature) {
-	std::string type = yamlGetString(feature, "type");
+	std::string type = YAMLParser::getString(feature, "type");
 	primitiveType = (type == "Node") ? osm::primitiveType::NODE : 
 					(type == "Way") ? osm::primitiveType::WAY : osm::primitiveType::RELATION;
-	primitiveId = yamlGetInt(feature, "id");
-	role = yamlGetString(feature, "role");
+	primitiveId = YAMLParser::getInt(feature, "id");
+	role = YAMLParser::getString(feature, "role");
 }
 
 }

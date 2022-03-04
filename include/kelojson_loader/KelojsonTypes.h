@@ -5,6 +5,8 @@
 #include <vector>
 #include <map>
 
+#include <geometry_common/Point2D.h>
+
 // Layer tags
 const std::string AREAS_LAYER = "areas";
 const std::string SUBAREAS_LAYER = "subareas";
@@ -115,6 +117,8 @@ namespace kelojson {
 	typedef std::map<unsigned int, TopologyEdge> TopologyEdgeMap;
 	typedef std::map<unsigned int, TopologyEdge>::iterator TopologyEdgeMapItr;
 	typedef std::map<unsigned int, TopologyEdge>::const_iterator TopologyEdgeMapConstItr;
+
+    using Point2D = kelo::geometry_common::Point2D;
 }
 
 #endif //KELO_KELOJSON_TYPES_H

@@ -49,7 +49,7 @@ namespace kelojson {
 			Node(const Node& node); // Copy constructor
 			virtual ~Node() {}
 
-			Pos position;
+			Point2D position;
 		};
 
 		class Way : public Primitive {

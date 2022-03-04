@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.10.2)
 project(kelojson_loader)
 
-add_compile_options(-std=c++11)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable")
+add_compile_options(
+    -std=c++11
+    -Wall
+    -Wextra
+    -Wno-unused-variable
+    -Wno-deprecated-copy
+)
 
 find_package(catkin REQUIRED COMPONENTS
     geometry_common
@@ -49,9 +54,10 @@ include_directories(
     ${catkin_INCLUDE_DIRS}
 )
 
-# add_library(kelojson_loader
-# )
+add_library(kelojson_loader
+    src/OsmPrimitives.cpp
+)
 
-# target_link_libraries(kelojson_loader
-#     ${catkin_LIBRARIES}
-# )
+target_link_libraries(kelojson_loader
+    ${catkin_LIBRARIES}
+)
