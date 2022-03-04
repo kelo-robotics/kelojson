@@ -1,5 +1,4 @@
-#include "global_map/OsmPrimitives.h"
-#include "yaml_common/Common.h"
+#include "kelojson_loader/OsmPrimitives.h"
 
 namespace kelojson {
 namespace osm {

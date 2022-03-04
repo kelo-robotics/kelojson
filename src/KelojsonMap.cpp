@@ -1,5 +1,4 @@
-#include "global_map/KelojsonMap.h"
-#include "yaml_common/Common.h"
+#include "kelojson_loader/KelojsonMap.h"
 #include <fstream>
 #include <iostream>
 

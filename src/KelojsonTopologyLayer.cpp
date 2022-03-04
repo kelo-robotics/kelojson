@@ -1,8 +1,6 @@
-#include "global_map/Utils.h"
-#include "global_map/KelojsonMap.h"
-#include "global_map/KelojsonUtils.h"
-#include "global_map/KelojsonAreasLayer.h"
-#include "global_map/KelojsonTopologyLayer.h"
+#include "kelojson_loader/KelojsonMap.h"
+#include "kelojson_loader/KelojsonAreasLayer.h"
+#include "kelojson_loader/KelojsonTopologyLayer.h"
 #include <iostream>
 
 namespace kelojson {

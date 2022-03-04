@@ -1,9 +1,9 @@
 #ifndef KELO_KELOJSON_MAP_H
 #define KELO_KELOJSON_MAP_H
 
-#include "KelojsonAreasLayer.h"
-#include "KelojsonZonesLayer.h"
-#include "KelojsonTopologyLayer.h"
+#include "kelojson_loader/KelojsonAreasLayer.h"
+#include "kelojson_loader/KelojsonZonesLayer.h"
+#include "kelojson_loader/KelojsonTopologyLayer.h"
 
 namespace kelojson {
 

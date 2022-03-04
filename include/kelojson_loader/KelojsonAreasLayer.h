@@ -1,7 +1,7 @@
 #ifndef KELO_KELOJSON_AREAS_LAYER_H
 #define KELO_KELOJSON_AREAS_LAYER_H
 
-#include "KelojsonLayer.h"
+#include "kelojson_loader/KelojsonLayer.h"
 
 namespace kelojson {
 

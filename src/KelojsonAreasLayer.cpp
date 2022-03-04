@@ -1,7 +1,5 @@
-#include "global_map/Utils.h"
-#include "global_map/KelojsonMap.h"
-#include "global_map/KelojsonUtils.h"
-#include "global_map/KelojsonAreasLayer.h"
+#include "kelojson_loader/KelojsonMap.h"
+#include "kelojson_loader/KelojsonAreasLayer.h"
 #include <iostream>
 #include <limits>
 

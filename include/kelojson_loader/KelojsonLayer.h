@@ -1,8 +1,8 @@
 #ifndef KELO_KELOJSON_LAYER_H
 #define KELO_KELOJSON_LAYER_H
 
-#include "OsmPrimitives.h"
-#include "KelojsonTypes.h"
+#include "kelojson_loader/OsmPrimitives.h"
+#include "kelojson_loader/KelojsonTypes.h"
 
 namespace kelojson {
 

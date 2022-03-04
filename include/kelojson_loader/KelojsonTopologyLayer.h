@@ -1,8 +1,7 @@
 #ifndef KELO_KELOJSON_TOPOLOGY_LAYER_H
 #define KELO_KELOJSON_TOPOLOGY_LAYER_H
 
-#include "KelojsonLayer.h"
-#include "SearchGraph.h"
+#include "kelojson_loader/KelojsonLayer.h"
 
 namespace kelojson {
 

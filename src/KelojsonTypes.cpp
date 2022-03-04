@@ -1,4 +1,4 @@
-#include "global_map/KelojsonTypes.h"
+#include "kelojson_loader/KelojsonTypes.h"
 
 namespace kelojson {
 namespace osm {

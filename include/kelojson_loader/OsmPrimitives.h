@@ -1,8 +1,7 @@
 #ifndef KELO_OSM_PRIMITIVES_H
 #define KELO_OSM_PRIMITIVES_H
 
-#include "KelojsonTypes.h"
-#include <navigation_common/Common.h>
+#include "kelojson_loader/KelojsonTypes.h"
 #include <yaml-cpp/yaml.h>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
