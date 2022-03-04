@@ -1,6 +1,6 @@
 #include "kelojson_loader/KelojsonTypes.h"
 
-namespace kelojson {
+namespace kelo::kelojson {
 namespace osm {
 
 std::string primitiveType::getName(PrimitiveType type) {

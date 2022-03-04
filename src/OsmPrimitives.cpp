@@ -1,7 +1,7 @@
 #include <yaml_common/Parser.h>
 #include "kelojson_loader/OsmPrimitives.h"
 
-namespace kelojson {
+namespace kelo::kelojson {
 namespace osm {
 
 using YAMLParser = kelo::yaml_common::Parser;

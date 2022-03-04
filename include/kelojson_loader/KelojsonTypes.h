@@ -8,6 +8,8 @@
 #include <geometry_common/Point2D.h>
 #include <geometry_common/Pose2D.h>
 
+namespace kelo::kelojson {
+
 // Layer tags
 const std::string AREAS_LAYER = "areas";
 const std::string SUBAREAS_LAYER = "subareas";
@@ -39,8 +41,6 @@ const std::string RELATION_TYPE_ASSOCIATION = "association";
 const std::string RELATION_TYPE_TRANSITION = "transition";
 const std::string RELATION_TYPE_RAMP_EDGES = "ramp-edges";
 const std::string RELATION_TYPE_OCCLUSION_REGION = "occlusion_region";
-
-namespace kelojson {
 
 	namespace osm {
 		namespace primitiveType {

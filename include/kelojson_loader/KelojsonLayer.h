@@ -4,7 +4,7 @@
 #include "kelojson_loader/OsmPrimitives.h"
 #include "kelojson_loader/KelojsonTypes.h"
 
-namespace kelojson {
+namespace kelo::kelojson {
 
 	// Forward declarations
 	class Map;

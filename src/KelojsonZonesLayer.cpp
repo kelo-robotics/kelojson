@@ -10,7 +10,7 @@
 using Polygon2D = kelo::geometry_common::Polygon2D;
 using LineSegment2D = kelo::geometry_common::LineSegment2D;
 
-namespace kelojson {
+namespace kelo::kelojson {
 
 zoneTypes::ZoneTypes zoneTypes::getType(std::string type) {
 	return type == ZONE_TYPE_ELEVATOR ? zoneTypes::FORBIDDEN :

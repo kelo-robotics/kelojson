@@ -5,7 +5,7 @@
 #include "kelojson_loader/KelojsonZonesLayer.h"
 #include "kelojson_loader/KelojsonTopologyLayer.h"
 
-namespace kelojson {
+namespace kelo::kelojson {
 
 	class Map {
 	public:

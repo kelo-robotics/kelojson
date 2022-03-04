@@ -10,7 +10,7 @@
 using Polygon2D = kelo::geometry_common::Polygon2D;
 using LineSegment2D = kelo::geometry_common::LineSegment2D;
 
-namespace kelojson {
+namespace kelo::kelojson {
 
 bool operator<(const AreaTransition& lhs, const AreaTransition& rhs) {
 	if (lhs.coordinates.size() == rhs.coordinates.size()) {

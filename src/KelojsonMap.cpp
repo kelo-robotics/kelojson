@@ -5,7 +5,7 @@
 
 #include "kelojson_loader/KelojsonMap.h"
 
-namespace kelojson {
+namespace kelo::kelojson {
 
 using YAMLParser = kelo::yaml_common::Parser;
 

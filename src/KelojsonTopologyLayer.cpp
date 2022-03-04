@@ -7,7 +7,7 @@
 
 using LineSegment2D = kelo::geometry_common::LineSegment2D;
 
-namespace kelojson {
+namespace kelo::kelojson {
 
 TopologyNode::TopologyNode()
 : position(Point2D())

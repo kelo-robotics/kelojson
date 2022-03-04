@@ -1,7 +1,7 @@
 #include "kelojson_loader/KelojsonLayer.h"
 #include "kelojson_loader/KelojsonMap.h"
 
-namespace kelojson {
+namespace kelo::kelojson {
 
 Layer::Layer(layerType::LayerType type, const Map* map) {
 	layerType = type;

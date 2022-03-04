@@ -3,7 +3,7 @@
 
 #include "kelojson_loader/KelojsonLayer.h"
 
-namespace kelojson {
+namespace kelo::kelojson {
 
 	// Forward declarations
 	class Area;
