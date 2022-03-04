@@ -51,48 +51,48 @@ namespace kelojson {
 	class ZoneNode : public Zone {
 	public:
 		ZoneNode(int featureId, zoneTypes::ZoneTypes zoneType,
-				osm::primitiveType::PrimitiveType primitiveType, const Pose& pose,
+				osm::primitiveType::PrimitiveType primitiveType, const Pose2D& pose,
 				const std::string& name = "");
 		virtual ~ZoneNode() {}
-		inline Pose getPose() const { return pose; }
+		inline Pose2D getPose() const { return pose; }
 
 	protected:
-		Pose pose;
+		Pose2D pose;
 	};
 
 	class ZoneLine : public Zone {
 	public:
 		ZoneLine(int featureId, zoneTypes::ZoneTypes zoneType,
 				osm::primitiveType::PrimitiveType primitiveType,
-				const std::vector<Pos>& coordinates, const std::string& name = "");
+				const std::vector<Point2D>& coordinates, const std::string& name = "");
 		virtual ~ZoneLine() {}
-		inline std::vector<Pos> getCoordinates() const { return coordinates; }
-		inline const std::vector<Pos>& getCoordinatesRef() const { return coordinates; }
+		inline std::vector<Point2D> getCoordinates() const { return coordinates; }
+		inline const std::vector<Point2D>& getCoordinatesRef() const { return coordinates; }
 
 	protected:
-		std::vector<Pos> coordinates;
+		std::vector<Point2D> coordinates;
 	};
 
 	class ZonePolygon : public Zone {
 	public:
 		ZonePolygon(int featureId, zoneTypes::ZoneTypes zoneType,
 					osm::primitiveType::PrimitiveType primitiveType,
-					const std::vector<Pos>& coordinates, const std::string& name = "");
+					const std::vector<Point2D>& coordinates, const std::string& name = "");
 		virtual ~ZonePolygon() {}
-		inline std::vector<Pos> getCoordinates() const { return coordinates; }
-		inline const std::vector<Pos>& getCoordinatesRef() const { return coordinates; }
+		inline std::vector<Point2D> getCoordinates() const { return coordinates; }
+		inline const std::vector<Point2D>& getCoordinatesRef() const { return coordinates; }
 
-		bool contains(Pos point) const;
+		bool contains(Point2D point) const;
 
 	protected:
-		std::vector<Pos> coordinates;
+		std::vector<Point2D> coordinates;
 	};
 
 	class Ramp : public ZonePolygon {
 	public:
 		Ramp(int featureId, zoneTypes::ZoneTypes zoneType,
 			 osm::primitiveType::PrimitiveType primitiveType,
-			 const std::vector<Pos>& coordinates, double incline, const std::string& name = "");
+			 const std::vector<Point2D>& coordinates, double incline, const std::string& name = "");
 		virtual ~Ramp() {}
 
 		bool valid() const;
@@ -102,13 +102,13 @@ namespace kelojson {
 
 		void setBottomNodes(const std::vector<unsigned int>& nodeIndices) { bottomNodes = nodeIndices; }
 		const std::vector<unsigned int>& getBottomNodeIds() const { return bottomNodes; }
-		std::vector<Pos> getBottomNodePositions() const;
+		std::vector<Point2D> getBottomNodePositions() const;
 
 		void setTopNodes(const std::vector<unsigned int>& nodeIndices) { topNodes = nodeIndices; }
 		const std::vector<unsigned int>& getTopNodeIds() const { return topNodes; }
-		std::vector<Pos> getTopNodePositions() const;
+		std::vector<Point2D> getTopNodePositions() const;
 
-		bool intersectsEdge(const Pos& edgeStart, const Pos& edgeEnd) const;
+		bool intersectsEdge(const Point2D& edgeStart, const Point2D& edgeEnd) const;
 
 		std::vector<int> getOverlappingAreaTransitionIds(const Map* kelojsonMap) const;
 
@@ -128,15 +128,15 @@ namespace kelojson {
 		void addOcclusionLine(const ZoneLine* line);
 		void addAreaTransition(const AreaTransition* transition);
 
-		bool overlapsWithLineString(std::vector<Pos> lineString) const;
-		bool overlapsWithLineSegment(Pos lineSegStart, Pos lineSegEnd) const;
+		bool overlapsWithLineString(std::vector<Point2D> lineString) const;
+		bool overlapsWithLineSegment(Point2D lineSegStart, Point2D lineSegEnd) const;
 
-		bool getFirstPointOfContactWithLineString(std::vector<Pos> lineString, Pos& contactPoint) const;
-		bool getFirstPointOfContactWithLineSegment(Pos lineSegStart, Pos lineSegEnd, Pos& contactPoint) const;
+		bool getFirstPointOfContactWithLineString(std::vector<Point2D> lineString, Point2D& contactPoint) const;
+		bool getFirstPointOfContactWithLineSegment(Point2D lineSegStart, Point2D lineSegEnd, Point2D& contactPoint) const;
 
-		double dist(const Pos& queryPoint) const;
+		double dist(const Point2D& queryPoint) const;
 
-		bool contains(const Pos& point) const;
+		bool contains(const Point2D& point) const;
 
 		bool empty() const;
 
@@ -153,16 +153,16 @@ namespace kelojson {
 		/**
 		 * @brief Get the polygonal representation of the occlusion regions as a closed line loop
 		 * 
-		 * @return const std::vector<Pos>& coordinates of the single connected line string (forming a polygon) of all the associated coordinate vectors.
+		 * @return const std::vector<Point2D>& coordinates of the single connected line string (forming a polygon) of all the associated coordinate vectors.
 		 * 								   Otherwise an empty list.
 		 */
-		const std::vector<Pos>& asPolygon() const;
+		const std::vector<Point2D>& asPolygon() const;
 
 	protected:
 		int featureId;
 		std::map<int, const ZoneLine*> occlusionLines;
 		std::map<int, const AreaTransition*> areaTransitions;
-		std::vector<Pos> polyCoordinates;
+		std::vector<Point2D> polyCoordinates;
 	};
 
 	typedef ZoneNode WaitingLocation;
@@ -189,7 +189,7 @@ namespace kelojson {
 		 * @param lineString The path of the robot as a set of 2D positions
 		 * @return std::vector< std::vector<const ZoneLine*> > A list if occlusion lines that intersect with each segment of the queried path
 		 */
-		std::vector< std::vector<const ZoneLine*> > getIntersectingOcclusionLines(const std::vector<Pos>& path) const;
+		std::vector< std::vector<const ZoneLine*> > getIntersectingOcclusionLines(const std::vector<Point2D>& path) const;
 
 		/**
 		 * @brief Get the occlusions lines that intersect with the queried path
@@ -197,7 +197,7 @@ namespace kelojson {
 		 * @param lineString The path of the robot as a set of 2D poses. Only the 2D positions will be considered of checking the intersection.
 		 * @return std::vector<const ZoneLine*> A list if occlusion lines that intersect with each segment of the queried path
 		 */
-		std::vector< std::vector<const ZoneLine*> > getIntersectingOcclusionLines(const std::vector<Pose>& path) const;
+		std::vector< std::vector<const ZoneLine*> > getIntersectingOcclusionLines(const std::vector<Pose2D>& path) const;
 
 		/**
 		 * @brief Get the occlusion lines that are closest to the queried position
@@ -206,7 +206,7 @@ namespace kelojson {
 		 * @param searchRadius The maximum displacement between the queried point and the occlusion line to be considered as valid.
 		 * @return std::vector<const ZoneLine*> A sorted list of occlusion lines with increasing distance from the queried point.
 		 */
-		std::vector<const ZoneLine*> getNearestOcclusionLines(const Pos& queryPosition, double searchRadius) const;
+		std::vector<const ZoneLine*> getNearestOcclusionLines(const Point2D& queryPosition, double searchRadius) const;
 
 		const OcclusionRegion* getOcclusionRegion(int featureId) const;
 		const std::map<int, OcclusionRegion>& getAllOcclusionRegions() const;
@@ -217,7 +217,7 @@ namespace kelojson {
 		 * @param lineString The path of the robot as a set of 2D positions
 		 * @return std::vector< std::vector<const OcclusionRegion*> > A list if occlusion regions that intersect with each segment of the queried path
 		 */
-		std::vector< std::vector<const OcclusionRegion*> > getIntersectingOcclusionRegions(const std::vector<Pos>& path) const;
+		std::vector< std::vector<const OcclusionRegion*> > getIntersectingOcclusionRegions(const std::vector<Point2D>& path) const;
 
 		/**
 		 * @brief Get the occlusions regions that intersect with the queried path
@@ -225,7 +225,7 @@ namespace kelojson {
 		 * @param lineString The path of the robot as a set of 2D poses. Only the 2D positions will be considered of checking the intersection.
 		 * @return std::vector<const OcclusionRegion*> A list if occlusion regions that intersect with each segment of the queried path
 		 */
-		std::vector< std::vector<const OcclusionRegion*> > getIntersectingOcclusionRegions(const std::vector<Pose>& path) const;
+		std::vector< std::vector<const OcclusionRegion*> > getIntersectingOcclusionRegions(const std::vector<Pose2D>& path) const;
 
 		/**
 		 * @brief Get the occlusion regions that are closest to the queried position
@@ -234,23 +234,23 @@ namespace kelojson {
 		 * @param searchRadius The maximum displacement between the queried point and the occlusion line to be considered as valid.
 		 * @return std::vector<const OcclusionRegion*> A sorted list of occlusion regions with increasing distance from the queried point.
 		 */
-		std::vector<const OcclusionRegion*> getNearestOcclusionRegions(const Pos& queryPosition, double searchRadius) const;
+		std::vector<const OcclusionRegion*> getNearestOcclusionRegions(const Point2D& queryPosition, double searchRadius) const;
 
 		/**
 		 * @brief Get a list of potential occlusion points per edge of the robot path
 		 * 
 		 * @param path A list of robot waypoints
-		 * @return std::vector< std::vector<Pos> > A list of potential occlusion points for each edge of the path
+		 * @return std::vector< std::vector<Point2D> > A list of potential occlusion points for each edge of the path
 		 */
-		std::vector< std::vector<Pos> > getOcclusionPointAlongPath(const std::vector<Pos>& path) const;
+		std::vector< std::vector<Point2D> > getOcclusionPointAlongPath(const std::vector<Point2D>& path) const;
 
 		/**
 		 * @brief Get a list of potential occlusion points per edge of the robot path
 		 * 
 		 * @param path A list of robot waypoints
-		 * @return std::vector< std::vector<Pos> > A list of potential occlusion points for each edge of the path
+		 * @return std::vector< std::vector<Point2D> > A list of potential occlusion points for each edge of the path
 		 */
-		std::vector< std::vector<Pos> > getOcclusionPointAlongPath(const std::vector<Pose>& path) const;
+		std::vector< std::vector<Point2D> > getOcclusionPointAlongPath(const std::vector<Pose2D>& path) const;
 
 		/**
 		 * @brief Get the first occlusion point along the robot path
@@ -260,7 +260,7 @@ namespace kelojson {
 		 * @return true occlusion point along the path found
 		 * @return false no occlusions along the path
 		 */
-		bool getFirstOcclusionPointAlongPath(const std::vector<Pos>& path, Pos& occlusionPoint) const;
+		bool getFirstOcclusionPointAlongPath(const std::vector<Point2D>& path, Point2D& occlusionPoint) const;
 
 		/**
 		 * @brief Get the first occlusion point along the robot path
@@ -270,14 +270,14 @@ namespace kelojson {
 		 * @return true occlusion point along the path found
 		 * @return false no occlusions along the path
 		 */
-		bool getFirstOcclusionPointAlongPath(const std::vector<Pose>& path, Pos& occlusionPoint) const;
+		bool getFirstOcclusionPointAlongPath(const std::vector<Pose2D>& path, Point2D& occlusionPoint) const;
 
 		bool hasRamps() const;
 		std::vector<const Ramp*> getAllRamps() const;
-		std::vector<const Ramp*> getIntersectingRamps(const Pos& start, const Pos& end) const;
-		std::vector<const Ramp*> getIntersectingRamps(const std::vector<Pos>& lineString) const;
+		std::vector<const Ramp*> getIntersectingRamps(const Point2D& start, const Point2D& end) const;
+		std::vector<const Ramp*> getIntersectingRamps(const std::vector<Point2D>& lineString) const;
 
-		bool insideForbiddenArea(const Pos& pos) const;
+		bool insideForbiddenArea(const Point2D& pos) const;
 
 		ZonesStore zones;
 

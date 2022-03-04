@@ -37,7 +37,7 @@ namespace kelojson {
 		bool isDoor() const;
 		double width() const;
 
-		std::vector<Pos> coordinates;
+		std::vector<Point2D> coordinates;
 		doorTypes::DoorTypes doorType;
 		int featureId;
 		std::pair<int, int> associatedAreaIds;
@@ -48,19 +48,19 @@ namespace kelojson {
 		int featureId;
 		areaTypes::AreaTypes areaType;
 		std::string name;
-		std::vector<Pos> coordinates;
+		std::vector<Point2D> coordinates;
 
 		std::vector<int> getAdjacentAreas() const;
 		std::vector<AreaTransition> getTransitionsWithArea(int adjAreaId) const;
 		std::map<int, std::vector<AreaTransition> > getAllDoors() const;
 		std::vector<AreaTransition> getDoorsWithArea(int adjAreaId) const;
 
-		bool insideBoundingBox(Pos point) const;
+		bool insideBoundingBox(Point2D point) const;
 		double getBoundingBoxArea() const;
-		bool contains(Pos point) const;
+		bool contains(Point2D point) const;
 
 		std::map<int, std::set<AreaTransition> > transitions;
-		std::pair<Pos, Pos> boundingBox;
+		std::pair<Point2D, Point2D> boundingBox;
 	};
 
 	class AreaBBoxComparator {
@@ -82,12 +82,12 @@ namespace kelojson {
 
 		const Area* getArea(int areaId) const;
 		const Area* getArea(const std::string& areaName) const;
-		const Area* getArea(const Pos& point) const;
+		const Area* getArea(const Point2D& point) const;
 
 		const AreaTransition* getAreaTransition(int featureId) const;
 		std::map<int, const AreaTransition*> getAllAreaTransitions() const;
-		bool getDistanceToTransition(const Pos& point, const AreaTransition* transition, double& distance) const;
-		std::vector<const AreaTransition*> getNearestTransitions(const Pos& point,
+		bool getDistanceToTransition(const Point2D& point, const AreaTransition* transition, double& distance) const;
+		std::vector<const AreaTransition*> getNearestTransitions(const Point2D& point,
 														  double searchRadius = std::numeric_limits<double>::max(),
 														  unsigned int maxNumTransitions = std::numeric_limits<unsigned int>::max()) const;
 
@@ -96,14 +96,14 @@ namespace kelojson {
 
 		std::vector<int> computePath(int startAreaId, int goalAreaId) const;
 		std::vector<int> computePath(const std::string& startAreaName, const std::string& goalAreaName) const;
-		std::vector<int> computePath(const Pos& startPos, const Pos& goalPos) const;
+		std::vector<int> computePath(const Point2D& startPos, const Point2D& goalPos) const;
 		std::string getPrintablePath(const std::vector<int>& path) const;
 
-		std::vector<const AreaTransition*> getIntersectingAreaTransitions(const Pos& start, const Pos& end) const;
-		std::vector<const AreaTransition*> getIntersectingAreaTransitions(const std::vector<Pos>& lineString) const;
+		std::vector<const AreaTransition*> getIntersectingAreaTransitions(const Point2D& start, const Point2D& end) const;
+		std::vector<const AreaTransition*> getIntersectingAreaTransitions(const std::vector<Point2D>& lineString) const;
 
 		// Returns true if the queried position overlaps with any of the mapped areas
-		bool contains(const Pos& pos) const;
+		bool contains(const Point2D& pos) const;
 
 		std::map<int, Area> areas;
 

@@ -28,7 +28,7 @@ namespace kelojson {
 		// const SubAreasLayer* getSubAreasLayer() const;
 
 		// Returns true if the queried position lies inside the map
-		bool insideMap(const Pos& pos) const;
+		bool insideMap(const Point2D& pos) const;
 
 	protected:
 		void clearOsmPrimitives();

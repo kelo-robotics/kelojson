@@ -18,7 +18,7 @@ namespace kelojson {
 		bool negate;
 		std::string name;
 		double resolution;
-		Pose origin;
+		Pose2D origin;
 	};
 
 

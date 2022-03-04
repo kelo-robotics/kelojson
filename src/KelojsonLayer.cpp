@@ -42,7 +42,7 @@ void OccupancyGridLayer::loadGeometries(const Map& map) {
 		if (node != NULL) {
 			OccupancyGrid og;
 			og.featureId = occGrids[i];
-			double theta;
+			float theta;
 			if (!node->getTagValue("filename", og.filename) ||
 				!node->getTagValue("free_thresh", og.freeThreshold) ||
 				!node->getTagValue("occupied_thresh", og.occupiedThreshold) ||
@@ -52,7 +52,7 @@ void OccupancyGridLayer::loadGeometries(const Map& map) {
 				!node->getTagValue("theta", theta)) {
 				continue;
 			}
-			og.origin = Pose(node->position.x, node->position.y, theta);
+			og.origin = Pose2D(node->position.x, node->position.y, theta);
 			occupancyGrids.insert(std::make_pair(og.featureId, og));
 		}
 	 }

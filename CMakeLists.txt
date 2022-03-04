@@ -55,6 +55,7 @@ include_directories(
 )
 
 add_library(kelojson_loader
+    src/KelojsonLayer.cpp
     src/OsmPrimitives.cpp
 )
 

@@ -6,6 +6,7 @@
 #include <map>
 
 #include <geometry_common/Point2D.h>
+#include <geometry_common/Pose2D.h>
 
 // Layer tags
 const std::string AREAS_LAYER = "areas";
@@ -119,6 +120,11 @@ namespace kelojson {
 	typedef std::map<unsigned int, TopologyEdge>::const_iterator TopologyEdgeMapConstItr;
 
     using Point2D = kelo::geometry_common::Point2D;
+    using Pose2D = kelo::geometry_common::Pose2D;
+
+    class Edge;
+    using BlockedEdge = int;
+    using Plan = std::vector<int>;
 }
 
 #endif //KELO_KELOJSON_TYPES_H
