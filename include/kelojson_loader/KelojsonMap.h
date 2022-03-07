@@ -9,6 +9,9 @@ namespace kelo::kelojson {
 
 	class Map {
 	public:
+		using Ptr = boost::shared_ptr<Map>;
+		using ConstPtr = boost::shared_ptr< const Map>;
+
 		Map();
 		virtual ~Map();
 
