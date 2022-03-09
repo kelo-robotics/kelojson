@@ -185,7 +185,7 @@ const TopologyNode* TopologyLayer::getClosestNodeInArea(const Point2D& point) co
 				double leastDistance = std::numeric_limits<double>::max();
 				for (unsigned int i = 0; i < nodeIds.size(); i++) {
 					const TopologyNode& node = topologyNodes.at(nodeIds[i]);
-					double dist = node.position.getCartDist(point);
+					double dist = node.position.distTo(point);
 					if (dist < leastDistance) {
 						leastDistance = dist;
 						closestNode = &node;
@@ -244,7 +244,7 @@ double TopologyLayer::minDistanceToEdge(const Point2D& point, int edgeId) const 
 	const TopologyEdge& edge = topologyEdges.at(edgeId);
 	const TopologyNode& start = topologyNodes.at(edge.startNodeId);
 	const TopologyNode& end = topologyNodes.at(edge.endNodeId);
-	return LineSegment2D(start.position, end.position).getMinDistFrom(point);
+	return LineSegment2D(start.position, end.position).minDistTo(point);
 }
 
 std::vector< std::vector<const kelojson::AreaTransition*> > TopologyLayer::getAreaTransitionsAlongPath(const std::vector<Point2D>& path) const {

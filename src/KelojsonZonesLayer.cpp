@@ -116,7 +116,7 @@ std::vector<Point2D> Ramp::getTopNodePositions() const {
 }
 
 bool Ramp::intersectsEdge(const Point2D& edgeStart, const Point2D& edgeEnd) const {
-	return Polygon2D(coordinates).isIntersecting(LineSegment2D(edgeStart, edgeEnd));
+	return Polygon2D(coordinates).intersects(LineSegment2D(edgeStart, edgeEnd));
 }
 
 std::vector<int> Ramp::getOverlappingAreaTransitionIds(const Map* kelojsonMap) const {
@@ -191,14 +191,14 @@ bool OcclusionRegion::overlapsWithLineSegment(Point2D lineSegStart, Point2D line
 		const ZoneLine* occlusionLine = itr->second;
 		if (!occlusionLine || occlusionLine->getCoordinatesRef().size() < 2)
 			continue;
-		overlaps = Polygon2D(occlusionLine->getCoordinatesRef()).isIntersecting(LineSegment2D(lineSegStart, lineSegEnd));
+		overlaps = Polygon2D(occlusionLine->getCoordinatesRef()).intersects(LineSegment2D(lineSegStart, lineSegEnd));
 	}
 
 	for (std::map<int, const AreaTransition*>::const_iterator itr = areaTransitions.begin(); itr != areaTransitions.end() && !overlaps; itr++) {
 		const AreaTransition* transition = itr->second;
 		if (!transition || transition->coordinates.size() < 2)
 			continue;
-		overlaps = Polygon2D(transition->coordinates).isIntersecting(LineSegment2D(lineSegStart, lineSegEnd));
+		overlaps = Polygon2D(transition->coordinates).intersects(LineSegment2D(lineSegStart, lineSegEnd));
 	}
 
 	return overlaps;
@@ -227,8 +227,8 @@ bool OcclusionRegion::getFirstPointOfContactWithLineSegment(Point2D lineSegStart
 			continue;
 
 		Point2D closestContactPoint;
-		if (Polygon2D(occlusionLine->getCoordinatesRef()).getClosestIntersectionPoint(segment, closestContactPoint)) {
-			contactPoints.insert(std::make_pair(lineSegStart.getCartDist(closestContactPoint), closestContactPoint));
+		if (Polygon2D(occlusionLine->getCoordinatesRef()).calcClosestIntersectionPointWith(segment, closestContactPoint)) {
+			contactPoints.insert(std::make_pair(lineSegStart.distTo(closestContactPoint), closestContactPoint));
 		}
 	}
 
@@ -238,8 +238,8 @@ bool OcclusionRegion::getFirstPointOfContactWithLineSegment(Point2D lineSegStart
 			continue;
 
 		Point2D closestContactPoint;
-		if (Polygon2D(transition->coordinates).getClosestIntersectionPoint(segment, closestContactPoint)) {
-			contactPoints.insert(std::make_pair(lineSegStart.getCartDist(closestContactPoint), closestContactPoint));
+		if (Polygon2D(transition->coordinates).calcClosestIntersectionPointWith(segment, closestContactPoint)) {
+			contactPoints.insert(std::make_pair(lineSegStart.distTo(closestContactPoint), closestContactPoint));
 		}
 	}
 
@@ -258,7 +258,7 @@ double OcclusionRegion::dist(const Point2D& queryPoint) const {
 			continue;
 
 		for (unsigned int i = 0; i < occlusionLine->getCoordinatesRef().size(); i++) {
-			double dist = queryPoint.getCartDist(occlusionLine->getCoordinatesRef()[i]);
+			double dist = queryPoint.distTo(occlusionLine->getCoordinatesRef()[i]);
 			if (dist < minDist) {
 				minDist = dist;
 			}
@@ -271,7 +271,7 @@ double OcclusionRegion::dist(const Point2D& queryPoint) const {
 			continue;
 
 		for (unsigned int i = 0; i < transition->coordinates.size(); i++) {
-			double dist = queryPoint.getCartDist(transition->coordinates[i]);
+			double dist = queryPoint.distTo(transition->coordinates[i]);
 			if (dist < minDist) {
 				minDist = dist;
 			}
@@ -552,7 +552,7 @@ std::vector< std::vector<const ZoneLine*> > ZonesLayer::getIntersectingOcclusion
 			if (!occlusions[j] || occlusions[j]->getCoordinatesRef().size() < 2)
 				continue;
 
-			if (Polygon2D(occlusions[j]->getCoordinatesRef()).isIntersecting(LineSegment2D(segStart, segEnd))) {
+			if (Polygon2D(occlusions[j]->getCoordinatesRef()).intersects(LineSegment2D(segStart, segEnd))) {
 				segIntersections.push_back(occlusions[j]);
 			}
 		}
@@ -582,7 +582,7 @@ std::vector<const ZoneLine*> ZonesLayer::getNearestOcclusionLines(const Point2D&
 			continue;
 
 		for (unsigned int j = 0; j < occlusions[i]->getCoordinatesRef().size(); j++) {
-			double dist = queryPosition.getCartDist(occlusions[i]->getCoordinatesRef()[j]);
+			double dist = queryPosition.distTo(occlusions[i]->getCoordinatesRef()[j]);
 			if (dist <= searchRadius) {
 				nearestLineMap.insert(std::make_pair(dist, occlusions[i]));
 				break;
@@ -627,7 +627,7 @@ std::vector< std::vector<const OcclusionRegion*> > ZonesLayer::getIntersectingOc
 		for (std::map<int, OcclusionRegion>::const_iterator itr = occlusionRegions.begin(); itr != occlusionRegions.end(); itr++) {
 			Point2D contactPoint;
 			if (itr->second.getFirstPointOfContactWithLineSegment(segStart, segEnd, contactPoint)) {
-				intersectingOcclusions.insert(std::make_pair(segStart.getCartDist(contactPoint), &(itr->second)));
+				intersectingOcclusions.insert(std::make_pair(segStart.distTo(contactPoint), &(itr->second)));
 			}
 		}
 		std::vector<const OcclusionRegion*> sortedIntersectingOcclusions;

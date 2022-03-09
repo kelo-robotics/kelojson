@@ -32,7 +32,7 @@ bool AreaTransition::isDoor() const {
 }
 
 double AreaTransition::width() const {
-	return coordinates[0].getCartDist(coordinates[coordinates.size() - 1]);
+	return coordinates[0].distTo(coordinates[coordinates.size() - 1]);
 
 }
 
@@ -287,9 +287,9 @@ bool AreasLayer::getDistanceToTransition(const Point2D& point, const AreaTransit
 	if (transition != NULL) {
 		// Find the closest point on the transition
 		Point2D closestPoint = transition->coordinates[0];
-		double shortestDistance = closestPoint.getCartDist(point);
+		double shortestDistance = closestPoint.distTo(point);
 		for (unsigned int i = 1; i < transition->coordinates.size(); i++) {
-			double dist = transition->coordinates[i].getCartDist(point);
+			double dist = transition->coordinates[i].distTo(point);
 			if (dist < shortestDistance) {
 				shortestDistance = dist;
 				closestPoint = transition->coordinates[i];
@@ -458,7 +458,7 @@ std::vector<const AreaTransition*> AreasLayer::getIntersectingAreaTransitions(co
 					Point2D transEdgeNode2 = trans->coordinates[transEdgeIdx + 1];
 					LineSegment2D transEdge(trans->coordinates[transEdgeIdx],
 											trans->coordinates[transEdgeIdx + 1]);
-					if (edge.isIntersecting(transEdge)) {
+					if (edge.intersects(transEdge)) {
 						if (std::find(intersections.begin(), intersections.end(), trans) == intersections.end()) {
 							intersections.push_back(trans);
 							break;
