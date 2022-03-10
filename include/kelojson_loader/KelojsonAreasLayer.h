@@ -11,6 +11,7 @@ namespace kelojson {
 			UNKNOWN = 0,
 			ROOM,
 			CORRIDOR,
+			JUNCTION,
 			OPEN_AREA,
 			COUNT
 		};

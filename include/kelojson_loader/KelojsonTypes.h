@@ -21,6 +21,7 @@ const std::string OCCUPANCY_GRID_LAYER = "occupancy-grid";
 // Area type tags
 const std::string AREA_TYPE_ROOM = "room";
 const std::string AREA_TYPE_CORRIDOR = "corridor";
+const std::string AREA_TYPE_JUNCTION = "junction";
 const std::string AREA_TYPE_OPEN_AREA = "area";
 
 // Zone type tags
