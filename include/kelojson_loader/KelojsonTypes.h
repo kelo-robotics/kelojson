@@ -8,7 +8,8 @@
 #include <geometry_common/Point2D.h>
 #include <geometry_common/Pose2D.h>
 
-namespace kelo::kelojson {
+namespace kelo {
+namespace kelojson {
 
 // Layer tags
 const std::string AREAS_LAYER = "areas";
@@ -121,6 +122,7 @@ const std::string RELATION_TYPE_OCCLUSION_REGION = "occlusion_region";
 
 	using Point2D = kelo::geometry_common::Point2D;
 	using Pose2D = kelo::geometry_common::Pose2D;
+}
 }
 
 #endif //KELO_KELOJSON_TYPES_H

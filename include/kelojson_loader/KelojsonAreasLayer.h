@@ -3,7 +3,8 @@
 
 #include "kelojson_loader/KelojsonLayer.h"
 
-namespace kelo::kelojson {
+namespace kelo {
+namespace kelojson {
 
 	namespace areaTypes {
 		enum AreaTypes {
@@ -110,6 +111,7 @@ namespace kelo::kelojson {
 	protected:
 		std::multiset<const Area*, AreaBBoxComparator> getAreasByBBoxSize() const;
 	};
+}
 }
 
 #endif // KELO_KELOJSON_AREAS_LAYER_H

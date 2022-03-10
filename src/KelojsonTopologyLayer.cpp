@@ -7,7 +7,8 @@
 
 using LineSegment2D = kelo::geometry_common::LineSegment2D;
 
-namespace kelo::kelojson {
+namespace kelo {
+namespace kelojson {
 
 TopologyNode::TopologyNode()
 : position(Point2D())
@@ -326,4 +327,5 @@ void TopologyLayer::loadInterlayerAssociations(const Map& map) {
 	// 		  << " relations in the topology layer" << std::endl; 
 }
 
+}
 }

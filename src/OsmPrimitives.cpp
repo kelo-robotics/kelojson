@@ -1,7 +1,8 @@
 #include <yaml_common/Parser.h>
 #include "kelojson_loader/OsmPrimitives.h"
 
-namespace kelo::kelojson {
+namespace kelo {
+namespace kelojson {
 namespace osm {
 
 using YAMLParser = kelo::yaml_common::Parser;
@@ -102,5 +103,6 @@ RelationMember::RelationMember(const YAML::Node& feature) {
 	role = YAMLParser::getString(feature, "role");
 }
 
+}
 }
 }

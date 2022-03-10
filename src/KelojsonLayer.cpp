@@ -1,7 +1,8 @@
 #include "kelojson_loader/KelojsonLayer.h"
 #include "kelojson_loader/KelojsonMap.h"
 
-namespace kelo::kelojson {
+namespace kelo {
+namespace kelojson {
 
 Layer::Layer(layerType::LayerType type, const Map* map) {
 	layerType = type;
@@ -78,4 +79,5 @@ void SubAreasLayer::loadRelations(const Map& map) {
 }
 */
 
+}
 }

@@ -1,6 +1,7 @@
 #include "kelojson_loader/KelojsonTypes.h"
 
-namespace kelo::kelojson {
+namespace kelo {
+namespace kelojson {
 namespace osm {
 
 std::string primitiveType::getName(PrimitiveType type) {
@@ -28,4 +29,5 @@ std::string layerType::getName(layerType::LayerType type) {
 		type == layerType::OCCUPANCY_GRID ? "OCCUPANCY_GRID" : "UNDEFINED";
 }
 
+}
 }

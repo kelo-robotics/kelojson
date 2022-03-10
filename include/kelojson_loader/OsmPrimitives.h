@@ -6,7 +6,8 @@
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 
-namespace kelo::kelojson {
+namespace kelo {
+namespace kelojson {
 
 	namespace osm {
 
@@ -84,6 +85,7 @@ namespace kelo::kelojson {
 			std::string relationType;
 		};
 	}
+}
 }
 
 #endif // KELO_OSM_PRIMITIVES_H

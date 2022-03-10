@@ -3,7 +3,8 @@
 
 #include "kelojson_loader/KelojsonLayer.h"
 
-namespace kelo::kelojson {
+namespace kelo {
+namespace kelojson {
 
 	// Forward declarations
 	class AreaTransition;
@@ -298,6 +299,7 @@ namespace kelo::kelojson {
 
 		std::map<int, OcclusionRegion> occlusionRegions;
 	};
+}
 }
 
 #endif // KELO_KELOJSON_ZONES_LAYER_H

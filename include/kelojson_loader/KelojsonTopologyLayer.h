@@ -3,7 +3,8 @@
 
 #include "kelojson_loader/KelojsonLayer.h"
 
-namespace kelo::kelojson {
+namespace kelo {
+namespace kelojson {
 
 	// Forward declarations
 	class Area;
@@ -73,6 +74,7 @@ namespace kelo::kelojson {
 		InternalIdMap nodeInternalIdMap;
 		FeatureIdMap nodeFeatureIdMap;
 	};
+}
 }
 
 #endif // KELO_KELOJSON_TOPOLOGY_LAYER_H

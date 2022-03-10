@@ -5,7 +5,8 @@
 #include "kelojson_loader/KelojsonZonesLayer.h"
 #include "kelojson_loader/KelojsonTopologyLayer.h"
 
-namespace kelo::kelojson {
+namespace kelo {
+namespace kelojson {
 
 	class Map {
 	public:
@@ -52,6 +53,7 @@ namespace kelo::kelojson {
 		LayerMap layers;
 		OsmPrimitiveStore osmPrimitiveStore;
 	};
+}
 }
 
 #endif // KELO_KELOJSON_MAP_H

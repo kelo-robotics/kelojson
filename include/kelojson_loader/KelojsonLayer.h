@@ -4,7 +4,8 @@
 #include "kelojson_loader/OsmPrimitives.h"
 #include "kelojson_loader/KelojsonTypes.h"
 
-namespace kelo::kelojson {
+namespace kelo {
+namespace kelojson {
 
 	// Forward declarations
 	class Map;
@@ -58,6 +59,7 @@ namespace kelo::kelojson {
 	// 	virtual void loadGeometries(const Map& map) /*override*/;
 	// 	virtual void loadRelations(const Map& map) /*override*/;
 	// };
+}
 }
 
 #endif // KELO_KELOJSON_LAYER_H

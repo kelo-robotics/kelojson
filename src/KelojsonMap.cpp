@@ -5,7 +5,8 @@
 
 #include "kelojson_loader/KelojsonMap.h"
 
-namespace kelo::kelojson {
+namespace kelo {
+namespace kelojson {
 
 using YAMLParser = kelo::yaml_common::Parser;
 
@@ -245,5 +246,5 @@ bool Map::insideMap(const Point2D& pos) const {
 	return areasLayer && areasLayer->contains(pos);
 }
 
-
+}
 }
