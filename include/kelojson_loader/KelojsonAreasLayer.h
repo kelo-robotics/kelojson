@@ -41,6 +41,7 @@ namespace kelojson {
 		std::vector<Point2D> coordinates;
 		doorTypes::DoorTypes doorType;
 		int featureId;
+		std::string name;
 		std::pair<int, int> associatedAreaIds;
 	};
 
