@@ -160,6 +160,14 @@ int OcclusionRegion::getFeatureId() const {
 	return featureId;
 }
 
+void OcclusionRegion::setName(const std::string& name) {
+	this->name = name;
+}
+
+const std::string& OcclusionRegion::getName() const{
+	return name;
+}
+
 void OcclusionRegion::addOcclusionLine(const ZoneLine* line) {
 	if (!line || occlusionLines.find(line->getFeatureId()) != occlusionLines.end()) {
 		return;
@@ -857,6 +865,16 @@ void ZonesLayer::loadOcclusionRegions(const Map& map) {
 				}
 			}
 			if (!occlusionRegion.empty()) {
+				std::string name;
+				relation->getTagValue("name", name);
+				if (name.empty())
+				{
+					// Construct a name for the occlusion region
+					std::stringstream ss;
+					ss << "OcclusionRegion-" << std::abs(relation->primitiveId);
+					name = ss.str();
+				}
+				occlusionRegion.setName(name);
 				occlusionRegion.generatePolygonCoords();
 				occlusionRegions.insert(std::make_pair(occlusionRegion.getFeatureId(), occlusionRegion));
 				nSuccess++;
