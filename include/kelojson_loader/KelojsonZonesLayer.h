@@ -126,6 +126,10 @@ namespace kelojson {
 
 		int getFeatureId() const;
 
+		void setName(const std::string& name);
+
+		const std::string& getName() const;
+
 		void addOcclusionLine(const ZoneLine* line);
 		void addAreaTransition(const AreaTransition* transition);
 
@@ -161,6 +165,7 @@ namespace kelojson {
 
 	protected:
 		int featureId;
+		std::string name;
 		std::map<int, const ZoneLine*> occlusionLines;
 		std::map<int, const AreaTransition*> areaTransitions;
 		std::vector<Point2D> polyCoordinates;
