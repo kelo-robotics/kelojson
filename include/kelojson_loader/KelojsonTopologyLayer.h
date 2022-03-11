@@ -23,6 +23,7 @@ namespace kelojson {
 
 		Point2D position;
 		int featureId;
+		std::string name;
 		std::map<layerType::LayerType, std::set<int> > interlayerAssociations;
 	};
 
@@ -32,6 +33,7 @@ namespace kelojson {
 		unsigned int edgeId;
 		int startNodeId;
 		int endNodeId;
+		std::string name;
 	};
 
 	class TopologyLayer : public Layer {
