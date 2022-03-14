@@ -1,14 +1,18 @@
 
 #include <iostream>
-#include <geometry_common/LineSegment2D.h>
 #include <geometry_common/Polygon2D.h>
+#include <geometry_common/TransformMatrix2D.h>
+#include <geometry_common/Utils.h>
 
 #include "kelojson_loader/KelojsonMap.h"
 #include "kelojson_loader/KelojsonAreasLayer.h"
 #include "kelojson_loader/KelojsonZonesLayer.h"
 
+using Polyline2D = kelo::geometry_common::Polyline2D;
 using Polygon2D = kelo::geometry_common::Polygon2D;
 using LineSegment2D = kelo::geometry_common::LineSegment2D;
+using TransformMatrix2D = kelo::geometry_common::TransformMatrix2D;
+using Utils = kelo::geometry_common::Utils;
 
 namespace kelo {
 namespace kelojson {
@@ -19,6 +23,7 @@ zoneTypes::ZoneTypes zoneTypes::getType(std::string type) {
 		   type == ZONE_TYPE_FORBIDDEN ? zoneTypes::FORBIDDEN :
 		   type == ZONE_TYPE_SLOWDOWN ? zoneTypes::SLOWDOWN :
 		   type == ZONE_TYPE_RAMP ? zoneTypes::RAMP :
+		   type == ZONE_TYPE_LOAD_PARKING ? zoneTypes::LOAD_PARKING :
 		   type == ZONE_TYPE_CHARGING_STATION ? zoneTypes::CHARGING_STATION  :
 		   type == ZONE_TYPE_WAITING_LOCATION ? zoneTypes::WAITING_LOCATION  :
 		   type == ZONE_TYPE_OCCLUSION ? zoneTypes::OCCLUSION  : zoneTypes::UNKNOWN;
@@ -30,6 +35,7 @@ std::string zoneTypes::getName(ZoneTypes type) {
 		   type == zoneTypes::FORBIDDEN ? "FORBIDDEN" :
 		   type == zoneTypes::SLOWDOWN ? "SLOWDOWN" :
 		   type == zoneTypes::RAMP ? "RAMP" :
+		   type == zoneTypes::LOAD_PARKING ? "LOAD_PARKING" :
 		   type == zoneTypes::CHARGING_STATION ? "CHARGING_STATION" :
 		   type == zoneTypes::WAITING_LOCATION ? "WAITING_LOCATION" :
 		   type == zoneTypes::OCCLUSION ? "OCCLUSION" : "UNKNOWN";
@@ -149,8 +155,50 @@ std::vector<int> Ramp::getOverlappingAreaTransitionIds(const Map* kelojsonMap) c
 	return overlappingTransitionIds;
 }
 
-OcclusionRegion::OcclusionRegion(int id)
-: featureId(id) {
+LoadParking::LoadParking(int featureId,
+						 const std::vector<Point2D>& coordinates,
+						 const std::string& name) 
+: ZonePolygon(featureId, zoneTypes::LOAD_PARKING, osm::primitiveType::WAY, coordinates, name)
+{
+}
+
+bool LoadParking::valid() const {
+	return coordinates.size() >= 3 &&		// Load parking must atleast be a triangle
+		   primaryOpeningNodes.size() >= 2;	// Minimum two nodes marked as top nodes
+}
+
+std::vector<Point2D> LoadParking::getPrimaryOpeningPositions() const
+{
+	std::vector<Point2D> positions;
+	for (unsigned int nodeOffset: primaryOpeningNodes) {
+		positions.push_back(coordinates[nodeOffset]);
+	}
+	return positions;
+}
+
+std::vector<Point2D> LoadParking::getSecondaryOpeningPositions() const
+{
+	std::vector<Point2D> positions;
+	for (unsigned int nodeOffset: secondaryOpeningNodes) {
+		positions.push_back(coordinates[nodeOffset]);
+	}
+	return positions;
+}
+
+void LoadParking::setBelongsToLoadParkingGroup(const std::string& groupName)
+{
+	if (!belongsToGroup(groupName)) {
+		loadParkingGroups.push_back(groupName);
+	}
+}
+
+bool LoadParking::belongsToGroup(const std::string& groupName) const
+{
+	return std::find(loadParkingGroups.begin(), loadParkingGroups.end(), groupName) != loadParkingGroups.end();
+}
+
+OcclusionRegion::OcclusionRegion(unsigned int id)
+: internalId(id) {
 }
 
 OcclusionRegion::~OcclusionRegion() {
@@ -160,20 +208,29 @@ int OcclusionRegion::getFeatureId() const {
 	return featureId;
 }
 
-void OcclusionRegion::addOcclusionLine(const ZoneLine* line) {
-	if (!line || occlusionLines.find(line->getFeatureId()) != occlusionLines.end()) {
-		return;
+void OcclusionRegion::setName(const std::string& name) {
+	this->name = name;
+}
+
+const std::string& OcclusionRegion::getName() const{
+	return name;
+}
+
+void OcclusionRegion::addOcclusionLine(const kelo::geometry_common::Polyline2D& line) {
+	for (const auto& l : occlusionLines) {
+		if (l == line) {
+			return;
+		}
 	}
 
-	occlusionLines.insert(std::make_pair(line->getFeatureId(), line));
+	occlusionLines.push_back(line);
 }
 
 void OcclusionRegion::addAreaTransition(const AreaTransition* transition) {
-	if (!transition || areaTransitions.find(transition->featureId) != areaTransitions.end()) {
+	if (!transition) {
 		return;
 	}
-
-	areaTransitions.insert(std::make_pair(transition->featureId, transition));
+	addOcclusionLine(kelo::geometry_common::Polyline2D(transition->coordinates));
 }
 
 bool OcclusionRegion::overlapsWithLineString(std::vector<Point2D> lineString) const {
@@ -188,18 +245,11 @@ bool OcclusionRegion::overlapsWithLineString(std::vector<Point2D> lineString) co
 bool OcclusionRegion::overlapsWithLineSegment(Point2D lineSegStart, Point2D lineSegEnd) const {
 	bool overlaps = false;
 
-	for (std::map<int, const ZoneLine*>::const_iterator itr = occlusionLines.begin(); itr != occlusionLines.end() && !overlaps; itr++) {
-		const ZoneLine* occlusionLine = itr->second;
-		if (!occlusionLine || occlusionLine->getCoordinatesRef().size() < 2)
+	for (auto itr = occlusionLines.begin(); itr != occlusionLines.end() && !overlaps; itr++) {
+		const Polyline2D& occlusionLine = *itr;
+		if (occlusionLine.size() < 2)
 			continue;
-		overlaps = Polygon2D(occlusionLine->getCoordinatesRef()).intersects(LineSegment2D(lineSegStart, lineSegEnd));
-	}
-
-	for (std::map<int, const AreaTransition*>::const_iterator itr = areaTransitions.begin(); itr != areaTransitions.end() && !overlaps; itr++) {
-		const AreaTransition* transition = itr->second;
-		if (!transition || transition->coordinates.size() < 2)
-			continue;
-		overlaps = Polygon2D(transition->coordinates).intersects(LineSegment2D(lineSegStart, lineSegEnd));
+		overlaps = occlusionLine.intersects(LineSegment2D(lineSegStart, lineSegEnd));
 	}
 
 	return overlaps;
@@ -222,24 +272,13 @@ bool OcclusionRegion::getFirstPointOfContactWithLineSegment(Point2D lineSegStart
 	std::map<int, Point2D> contactPoints;
 	LineSegment2D segment(lineSegStart, lineSegEnd);
 
-	for (std::map<int, const ZoneLine*>::const_iterator itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
-		const ZoneLine* occlusionLine = itr->second;
-		if (!occlusionLine || occlusionLine->getCoordinatesRef().size() < 2)
+	for (auto itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
+		const Polyline2D& occlusionLine = *itr;
+		if (occlusionLine.size() < 2)
 			continue;
 
 		Point2D closestContactPoint;
-		if (Polygon2D(occlusionLine->getCoordinatesRef()).calcClosestIntersectionPointWith(segment, closestContactPoint)) {
-			contactPoints.insert(std::make_pair(lineSegStart.distTo(closestContactPoint), closestContactPoint));
-		}
-	}
-
-	for (std::map<int, const AreaTransition*>::const_iterator itr = areaTransitions.begin(); itr != areaTransitions.end(); itr++) {
-		const AreaTransition* transition = itr->second;
-		if (!transition || transition->coordinates.size() < 2)
-			continue;
-
-		Point2D closestContactPoint;
-		if (Polygon2D(transition->coordinates).calcClosestIntersectionPointWith(segment, closestContactPoint)) {
+		if (occlusionLine.calcClosestIntersectionPointWith(segment, closestContactPoint)) {
 			contactPoints.insert(std::make_pair(lineSegStart.distTo(closestContactPoint), closestContactPoint));
 		}
 	}
@@ -253,26 +292,13 @@ bool OcclusionRegion::getFirstPointOfContactWithLineSegment(Point2D lineSegStart
 
 double OcclusionRegion::dist(const Point2D& queryPoint) const {
 	double minDist = std::numeric_limits<double>::max();
-	for (std::map<int, const ZoneLine*>::const_iterator itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
-		const ZoneLine* occlusionLine = itr->second;
-		if (!occlusionLine || occlusionLine->getCoordinatesRef().size() < 2)
+	for (auto itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
+		const Polyline2D& occlusionLine = *itr;
+		if (occlusionLine.size() < 2)
 			continue;
 
-		for (unsigned int i = 0; i < occlusionLine->getCoordinatesRef().size(); i++) {
-			double dist = queryPoint.distTo(occlusionLine->getCoordinatesRef()[i]);
-			if (dist < minDist) {
-				minDist = dist;
-			}
-		}
-	}
-
-	for (std::map<int, const AreaTransition*>::const_iterator itr = areaTransitions.begin(); itr != areaTransitions.end(); itr++) {
-		const AreaTransition* transition = itr->second;
-		if (!transition || transition->coordinates.size() < 2)
-			continue;
-
-		for (unsigned int i = 0; i < transition->coordinates.size(); i++) {
-			double dist = queryPoint.distTo(transition->coordinates[i]);
+		for (unsigned int i = 0; i < occlusionLine.size(); i++) {
+			double dist = queryPoint.distTo(occlusionLine[i]);
 			if (dist < minDist) {
 				minDist = dist;
 			}
@@ -290,23 +316,17 @@ bool OcclusionRegion::contains(const Point2D& point) const {
 }
 
 bool OcclusionRegion::empty() const {
-	return areaTransitions.empty() && occlusionLines.empty();
+	return occlusionLines.empty();
 }
 
 bool OcclusionRegion::generatePolygonCoords() {
 	polyCoordinates.clear(); // clear previously generated poly coordinates
 
 	std::vector< std::vector<Point2D> > lineStrings;
-	for (std::map<int, const kelojson::ZoneLine*>::const_iterator itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
-		const kelojson::ZoneLine* line = itr->second;
-		if (line && line->getCoordinatesRef().size() > 1) {
-			lineStrings.push_back(line->getCoordinates());
-		}
-	}
-	for (std::map<int, const kelojson::AreaTransition*>::const_iterator itr = areaTransitions.begin(); itr != areaTransitions.end(); itr++) {
-		const kelojson::AreaTransition* transition = itr->second;
-		if (transition && transition->coordinates.size() > 1) {
-			lineStrings.push_back(transition->coordinates);
+	for (auto itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
+		const Polyline2D& line = *itr;
+		if (line.size() > 1) {
+			lineStrings.push_back(line.vertices);
 		}
 	}
 
@@ -404,6 +424,11 @@ ZonesLayer::~ZonesLayer() {
 	zones.clear();
 }
 
+void ZonesLayer::loadFeatures(const Map& map) {
+	Layer::loadFeatures(map);
+	autoGenerateOcclusionRegions(map);
+}
+
 void ZonesLayer::loadGeometries(const Map& map) {
 	loadOsmWays(map);
 	loadOsmNodes(map);
@@ -486,7 +511,12 @@ void ZonesLayer::loadOsmWays(const Map& map) {
 														coordinates,
 														getRampInclination(way),
 														getZoneName(way))));
-			} else {
+			} else if (zoneType == zoneTypes::LOAD_PARKING) {
+				wayZones.insert(std::make_pair(way->primitiveId, 
+											   new LoadParking(way->primitiveId,
+														coordinates,
+														getZoneName(way))));
+			}  else {
 				wayZones.insert(std::make_pair(way->primitiveId,
 											   new ZonePolygon(way->primitiveId,
 															   zoneType,
@@ -598,20 +628,7 @@ std::vector<const ZoneLine*> ZonesLayer::getNearestOcclusionLines(const Point2D&
 	return lines;
 }
 
-const OcclusionRegion* ZonesLayer::getOcclusionRegion(int featureId) const {
-	const OcclusionRegion* region = NULL;
-	const std::map<int, OcclusionRegion>& occRegions = getAllOcclusionRegions();
-
-	for (std::map<int, OcclusionRegion>::const_iterator itr = occRegions.begin(); itr != occRegions.end(); itr++) {
-		if (itr->second.getFeatureId() == featureId) {
-			region = &(itr->second);
-			break;
-		}
-	}
-	return region;
-}
-
-const std::map<int, OcclusionRegion>& ZonesLayer::getAllOcclusionRegions() const {
+const std::map<unsigned int, OcclusionRegion>& ZonesLayer::getAllOcclusionRegions() const {
 	return occlusionRegions;
 }
 
@@ -625,7 +642,7 @@ std::vector< std::vector<const OcclusionRegion*> > ZonesLayer::getIntersectingOc
 		std::multimap<double, const OcclusionRegion*> intersectingOcclusions;
 		Point2D segStart = path[i];
 		Point2D segEnd = path[i + 1];
-		for (std::map<int, OcclusionRegion>::const_iterator itr = occlusionRegions.begin(); itr != occlusionRegions.end(); itr++) {
+		for (std::map<unsigned int, OcclusionRegion>::const_iterator itr = occlusionRegions.begin(); itr != occlusionRegions.end(); itr++) {
 			Point2D contactPoint;
 			if (itr->second.getFirstPointOfContactWithLineSegment(segStart, segEnd, contactPoint)) {
 				intersectingOcclusions.insert(std::make_pair(segStart.distTo(contactPoint), &(itr->second)));
@@ -655,7 +672,7 @@ std::vector<const OcclusionRegion*> ZonesLayer::getNearestOcclusionRegions(const
 	std::vector<const OcclusionRegion*> regions;
 	std::multimap<double, const OcclusionRegion*> nearestRegionsMap; // sort and store the nearest lines
 
-	for (std::map<int, OcclusionRegion>::const_iterator itr = occlusionRegions.begin(); itr != occlusionRegions.end(); itr++) {
+	for (std::map<unsigned int, OcclusionRegion>::const_iterator itr = occlusionRegions.begin(); itr != occlusionRegions.end(); itr++) {
 		double distToOcclusionRegion = itr->second.dist(queryPosition);
 		if (distToOcclusionRegion < searchRadius) {
 			nearestRegionsMap.insert(std::make_pair(distToOcclusionRegion, &(itr->second)));
@@ -676,7 +693,7 @@ std::vector< std::vector<Point2D> > ZonesLayer::getOcclusionPointAlongPath(const
 	if (occRegions.size() != path.size() - 1)
 		return edgeOcclusions;
 
-	std::vector<int> processedOccRegions;
+	std::vector<unsigned int> processedOccRegions;
 	for (unsigned int edgeIdx = 0; (edgeIdx + 1) < path.size(); edgeIdx++) {
 		std::vector<const OcclusionRegion*> intersectingOcclusions = occRegions[edgeIdx];
 		if (!intersectingOcclusions.empty()) {
@@ -685,7 +702,7 @@ std::vector< std::vector<Point2D> > ZonesLayer::getOcclusionPointAlongPath(const
 				const OcclusionRegion* occlusion = intersectingOcclusions[occIdx];
 				if (!occlusion || std::find(processedOccRegions.begin(),
 											processedOccRegions.end(),
-											occlusion->getFeatureId()) != processedOccRegions.end())
+											occlusion->getInternalId()) != processedOccRegions.end())
 					continue;
 
 				Point2D intPoint;
@@ -698,7 +715,7 @@ std::vector< std::vector<Point2D> > ZonesLayer::getOcclusionPointAlongPath(const
 					if (!occlusion->contains(pointBeforeIntersection)) {
 						// Add the intersection point only when entering an occlusion region for first time
 						intersectionPts.push_back(intPoint);
-						processedOccRegions.push_back(occlusion->getFeatureId());
+						processedOccRegions.push_back(occlusion->getInternalId());
 					}
 				}
 			}
@@ -821,7 +838,8 @@ void ZonesLayer::loadOcclusionRegions(const Map& map) {
 		if (relation != NULL && 
 			relation->members.size() > 0 &&
 			relation->relationType == RELATION_TYPE_OCCLUSION_REGION) {
-			OcclusionRegion occlusionRegion(relation->primitiveId);
+			OcclusionRegion occlusionRegion(occlusionRegions.size());
+			occlusionRegion.setFeatureId(relation->primitiveId);
 			for (unsigned int mId = 0; mId < relation->members.size(); mId++) {
 				const osm::RelationMember& member = relation->members[mId];
 				if (member.role == "transition") {
@@ -843,7 +861,7 @@ void ZonesLayer::loadOcclusionRegions(const Map& map) {
 				} else if (member.role == "line") {
 					const ZoneLine* occlusionLine = getOcclusionLine(member.primitiveId);
 					if (occlusionLine) {
-						occlusionRegion.addOcclusionLine(occlusionLine);
+						occlusionRegion.addOcclusionLine(Polyline2D(occlusionLine->getCoordinatesRef()));
 					} else {
 						std::cout << "Failed to occlusion line associated with Occlusion region: "
 								  << relation->primitiveId << ". Occlusion line not found in Zones Layer!" << std::endl;
@@ -857,8 +875,18 @@ void ZonesLayer::loadOcclusionRegions(const Map& map) {
 				}
 			}
 			if (!occlusionRegion.empty()) {
+				std::string name;
+				relation->getTagValue("name", name);
+				if (name.empty())
+				{
+					// Construct a name for the occlusion region
+					std::stringstream ss;
+					ss << "OcclusionRegion-" << std::abs(relation->primitiveId);
+					name = ss.str();
+				}
+				occlusionRegion.setName(name);
 				occlusionRegion.generatePolygonCoords();
-				occlusionRegions.insert(std::make_pair(occlusionRegion.getFeatureId(), occlusionRegion));
+				occlusionRegions.insert(std::make_pair(occlusionRegion.getInternalId(), occlusionRegion));
 				nSuccess++;
 			}
 		}
@@ -930,56 +958,34 @@ void ZonesLayer::loadIntralayerAssociations(const Map& map) {
 	int nSuccess = 0;
 	for (unsigned int i = 0; i < relations.size(); i++) {
 		const osm::Relation* relation = map.getOsmRelation(relations[i]);
-		unsigned int minMembers = 5; // The ramp polygon plus min 2 nodes each for bottom and top edge
-		if (relation != NULL && 
-			relation->members.size() >= minMembers &&
-			relation->relationType == RELATION_TYPE_RAMP_EDGES) {
-			const osm::RelationMember& rampMember = relation->members[0];
-			if (zones.find(rampMember.primitiveType) != zones.end() &&
-				zones.at(rampMember.primitiveType).find(rampMember.primitiveId) != zones.at(rampMember.primitiveType).end()) {
-				Ramp* ramp = dynamic_cast<Ramp*>(zones.at(rampMember.primitiveType).at(rampMember.primitiveId));
-				const osm::Way* way = map.getOsmWay(rampMember.primitiveId);
-				if (ramp != NULL && way != NULL) {
-					std::vector<unsigned int> bottomNodeIds, topNodeIds;
-					bool failure = false;
-					for (unsigned int j = 1; !failure && j < relation->members.size(); j++) {
-						const osm::RelationMember& m = relation->members[j];
-						if (m.primitiveType == osm::primitiveType::NODE && m.role == "bottom") {
-							std::vector<int>::const_iterator it = std::find(way->nodeIds.begin(), way->nodeIds.end(), m.primitiveId);
-							if (it != way->nodeIds.end()) {
-								bottomNodeIds.push_back((unsigned int)std::distance(way->nodeIds.begin(), it));
-							} else {
-								failure = true;
-								std::cout << "Failed to find member node " 
-										  << m.primitiveId 
-										  << " marked as a bottom node of ramp "
-										  << rampMember.primitiveId
-										  << std::endl;
-							}
-						}
-						else if (m.primitiveType == osm::primitiveType::NODE && m.role == "top") {
-							std::vector<int>::const_iterator it = std::find(way->nodeIds.begin(), way->nodeIds.end(), m.primitiveId);
-							if (it != way->nodeIds.end()) {
-								topNodeIds.push_back((unsigned int)std::distance(way->nodeIds.begin(), it));
-							} else {
-								failure = true;
-								std::cout << "Failed to find member node " 
-										  << m.primitiveId 
-										  << " marked as a top node of ramp "
-										  << rampMember.primitiveId
-										  << std::endl;
-							}
-						}
-					}
-					if (!failure) {
-						nSuccess++;
-						ramp->setBottomNodes(bottomNodeIds);
-						ramp->setTopNodes(topNodeIds);
-					}
-				}
+		if (relation == NULL)
+			continue;
+		if (relation->relationType == RELATION_TYPE_RAMP_EDGES) {
+			if (loadRampEdges(map, relation)) {
+				nSuccess++;
 			}
 			else {
-				std::cout << "Failed to parse association relation " 
+				std::cout << "Failed to parse load ramp edges relation " 
+						  << relation->primitiveId 
+						  << " in the Zones layer!" 
+						  << std::endl;
+			}
+		}
+		else if (relation->relationType == RELATION_TYPE_LOAD_PARKING_OPENINGS) {
+			if (loadLoadParkingOpenings(map, relation)) {
+				nSuccess++;
+			} else {
+				std::cout << "Failed to parse load parking opening relation " 
+						  << relation->primitiveId 
+						  << " in the Zones layer!" 
+						  << std::endl;
+			}
+		}
+		else if (relation->relationType == RELATION_TYPE_LOAD_PARKING_GROUP) {
+			if (loadLoadParkingGroup(relation)) {
+				nSuccess++;
+			} else {
+				std::cout << "Failed to parse load parking group relation " 
 						  << relation->primitiveId 
 						  << " in the Zones layer!" 
 						  << std::endl;
@@ -987,8 +993,238 @@ void ZonesLayer::loadIntralayerAssociations(const Map& map) {
 		}
 	}
 
-	// std::cout << "\tSuccessfully loaded " << nSuccess << "/" << relations.size() 
-	// 		  << " intra-layer relations in the Zones layer" << std::endl; 
+	std::cout << "\tSuccessfully loaded " << nSuccess << "/" << relations.size() 
+			  << " intra-layer relations in the Zones layer" << std::endl;
+}
+
+bool ZonesLayer::loadRampEdges(const Map& map, const osm::Relation* relation)
+{
+	if (relation->members.size() < 5)// The ramp polygon plus min 2 nodes each for bottom and top edge
+		return false;
+
+	ZonesMap& zonePolygons = zones.at(osm::primitiveType::WAY);
+	const osm::RelationMember& rampMember = relation->members[0];
+
+	if (zonePolygons.find(rampMember.primitiveId) == zonePolygons.end()) {
+		return false;
+	}
+
+	Ramp* ramp = dynamic_cast<Ramp*>(zonePolygons.at(rampMember.primitiveId));
+	const osm::Way* way = map.getOsmWay(rampMember.primitiveId);
+	if (ramp == NULL || way == NULL) {
+		return false;
+	}
+
+	std::vector<unsigned int> bottomNodeIds, topNodeIds;
+	for (unsigned int j = 1; j < relation->members.size(); j++) {
+		const osm::RelationMember& m = relation->members[j];
+		if (m.primitiveType != osm::primitiveType::NODE ||
+			(m.role != "bottom" && m.role != "top"))
+			continue;
+
+		std::vector<int>::const_iterator it = std::find(way->nodeIds.begin(), way->nodeIds.end(), m.primitiveId);
+		if (it == way->nodeIds.end())
+			return false;
+
+		unsigned int relativeNodeOffset = (unsigned int)std::distance(way->nodeIds.begin(), it);
+		if (m.role == "bottom") {
+			bottomNodeIds.push_back(relativeNodeOffset);
+		} else {
+			topNodeIds.push_back(relativeNodeOffset);
+		}
+	}
+
+	if (bottomNodeIds.size() < 2 || topNodeIds.size() < 2) {
+		return false;
+	}
+
+	ramp->setBottomNodes(bottomNodeIds);
+	ramp->setTopNodes(topNodeIds);
+	return true;
+}
+
+bool ZonesLayer::loadLoadParkingOpenings(const Map& map, const osm::Relation* relation)
+{
+	if (relation->members.size() < 3 || // The load parking polygon plus min 2 nodes for primary opening
+		zones.find(osm::primitiveType::WAY) == zones.end()) { // There must be a polygon for load parking
+		return false;
+	}
+
+	ZonesMap& zonePolygons = zones.at(osm::primitiveType::WAY);
+	const osm::RelationMember& loadParkingMember = relation->members[0];
+
+	if (zonePolygons.find(loadParkingMember.primitiveId) == zonePolygons.end()) {
+		return false;
+	}
+
+	LoadParking* loadParking = dynamic_cast<LoadParking*>(zonePolygons.at(loadParkingMember.primitiveId));
+	const osm::Way* way = map.getOsmWay(loadParkingMember.primitiveId);
+	if (loadParking == NULL || way == NULL) {
+		return false;
+	}
+
+	std::vector<unsigned int> primaryOpeningNodes, secondaryOpeningNodes;
+	for (unsigned int j = 1; j < relation->members.size(); j++) {
+		const osm::RelationMember& m = relation->members[j];
+		if (m.primitiveType != osm::primitiveType::NODE ||
+			(m.role != "primary_opening" && m.role != "secondary_opening"))
+			continue;
+
+		std::vector<int>::const_iterator it = std::find(way->nodeIds.begin(), way->nodeIds.end(), m.primitiveId);
+		if (it == way->nodeIds.end())
+			return false;
+
+		unsigned int relativeNodeOffset = (unsigned int)std::distance(way->nodeIds.begin(), it);
+		if (m.role == "primary_opening") {
+			primaryOpeningNodes.push_back(relativeNodeOffset);
+		} else {
+			secondaryOpeningNodes.push_back(relativeNodeOffset);
+		}
+	}
+
+	if (primaryOpeningNodes.size() < 2)
+		return false;
+
+	if (secondaryOpeningNodes.size() == 1) {
+		// Secondary opening should either have no nodes OR should have more than 1 node
+		return false;
+	}
+
+	loadParking->setPrimaryOpeningNodes(primaryOpeningNodes);
+	if (secondaryOpeningNodes.size() > 1) {
+		loadParking->setSecondaryOpeningNodes(secondaryOpeningNodes);
+	}
+
+	float orientation = 0.0F;
+	if (way->getTagValue("theta", orientation)) {
+		loadParking->setLoadOrientation(orientation);
+	}
+	else {
+		// Explicit Load Orientation is not defined,
+		// calculate the orientation using the primary opening
+		std::vector<Point2D> primaryOpeningPos = loadParking->getPrimaryOpeningPositions();
+		LineSegment2D primaryOpeningSeg(primaryOpeningPos[0],
+										primaryOpeningPos[primaryOpeningPos.size() - 1]);
+		orientation = Utils::calcPerpendicularAngle(primaryOpeningSeg.angle());
+		Point2D center = primaryOpeningSeg.center();
+		const float displacement = 0.1; // 10 cm
+		// Get a point along the perpendicular at a certain displacement from center
+		Point2D testPt(center.x + (std::cos(orientation) * displacement),
+					   center.y + (std::sin(orientation) * displacement));
+		if (Polygon2D(loadParking->getCoordinatesRef()).containsPoint(testPt))
+		{
+			orientation = Utils::calcReverseAngle(orientation);
+		}
+	}
+	loadParking->setLoadOrientation(orientation);
+
+	return true;
+}
+
+bool ZonesLayer::loadLoadParkingGroup(const osm::Relation* relation) {
+	if (zones.find(osm::primitiveType::WAY) == zones.end())
+		return false;
+	ZonesMap& zonePolygons = zones.at(osm::primitiveType::WAY);
+
+	std::string groupName;
+	relation->getTagValue("name", groupName);
+	if (groupName.empty())
+		return false;
+
+	std::vector<LoadParking*> loadParkingMembers;
+	for (const osm::RelationMember& m : relation->members) {
+		if (m.primitiveType != osm::primitiveType::WAY)
+			return false;
+
+		LoadParking* loadParking = dynamic_cast<LoadParking*>(zonePolygons.at(m.primitiveId));
+		if (!loadParking)
+			return false;
+
+		loadParkingMembers.push_back(loadParking);
+	}
+
+	for (LoadParking* parking : loadParkingMembers) {
+		parking->setBelongsToLoadParkingGroup(groupName);
+	}
+	return true;
+}
+
+void ZonesLayer::autoGenerateOcclusionRegions(const Map& map) {
+	const AreasLayer* areasLayer = map.getAreasLayer();
+	if (!areasLayer || areasLayer->areas.empty())
+		return;
+
+	// Generate occlusion regions at junctions
+	for (const auto& a : areasLayer->areas) {
+		const Area& area = a.second;
+		if (area.areaType != areaTypes::JUNCTION)
+			continue;
+
+		OcclusionRegion occRegion(occlusionRegions.size());
+		for (const auto& ta : area.transitions) {
+			const std::set<AreaTransition>& transitionWithArea = ta.second;
+			for (const AreaTransition& transition : transitionWithArea) {
+				occRegion.addAreaTransition(&transition);
+			}
+		}
+		if (!occRegion.empty() && occRegion.generatePolygonCoords()) {
+			// Construct a name for the occlusion region
+			std::stringstream ss;
+			ss << "Junction-" << area.name << "-OcclusionRegion";
+			occRegion.setName(ss.str());
+			occlusionRegions.insert(std::make_pair(occRegion.getInternalId(), occRegion));
+		}
+	}
+
+	// Generate occlusion regions at doors
+	for (const auto& t : areasLayer->getAllAreaTransitions()) {
+		const AreaTransition* transition = t.second;
+		if (transition && transition->isDoor()) {
+			const std::vector<Point2D>& coords =  transition->coordinates;
+			if (coords.size() < 2)
+				continue;
+
+			LineSegment2D doorSeg(coords.front(), coords.back());
+			float perpAngle = Utils::calcPerpendicularAngle(doorSeg.angle());
+			Point2D unitVec(std::cos(perpAngle), std::sin(perpAngle));
+			const float maxPerpDistFromDoor = 2.5F; // meters
+
+			std::vector<Point2D> firstEdge{coords.front(),
+										   coords.front() + (unitVec * maxPerpDistFromDoor)};
+			std::vector<Point2D> secondEdge{coords.back(),
+											coords.back() + (unitVec * maxPerpDistFromDoor)};
+			std::vector<Point2D> thirdEdge{coords.front(),
+										   coords.front() - (unitVec * maxPerpDistFromDoor)};
+			std::vector<Point2D> fourthEdge{coords.back(),
+											coords.back() - (unitVec * maxPerpDistFromDoor)};
+
+			OcclusionRegion occRegion1(occlusionRegions.size());
+			// The order of adding the below 3 elements to occ region is crucial.
+			// The transition must be the second element among the three elements
+			occRegion1.addOcclusionLine(firstEdge);
+			occRegion1.addAreaTransition(transition);
+			occRegion1.addOcclusionLine(secondEdge);
+			if (!occRegion1.empty() && occRegion1.generatePolygonCoords()) {
+				// Construct a name for the occlusion region
+				std::stringstream ss;
+				ss << "Door-" << transition->name << "-OcclusionRegion-1";
+				occRegion1.setName(ss.str());
+				occlusionRegions.insert(std::make_pair(occRegion1.getInternalId(), occRegion1));
+			}
+
+			OcclusionRegion occRegion2(occlusionRegions.size());
+			occRegion2.addAreaTransition(transition);
+			occRegion2.addOcclusionLine(thirdEdge);
+			occRegion2.addOcclusionLine(fourthEdge);
+			if (!occRegion2.empty() && occRegion2.generatePolygonCoords()) {
+				// Construct a name for the occlusion region
+				std::stringstream ss;
+				ss << "Door-" << transition->name << "-OcclusionRegion-2";
+				occRegion2.setName(ss.str());
+				occlusionRegions.insert(std::make_pair(occRegion2.getInternalId(), occRegion2));
+			}
+		}
+	}
 }
 
 std::vector<const ZoneNode*> ZonesLayer::getNodes(zoneTypes::ZoneTypes type) const {

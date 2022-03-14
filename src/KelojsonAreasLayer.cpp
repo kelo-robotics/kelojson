@@ -40,6 +40,7 @@ double AreaTransition::width() const {
 areaTypes::AreaTypes areaTypes::getType(std::string type) {
 	return type == AREA_TYPE_ROOM ? areaTypes::ROOM :
 		   type == AREA_TYPE_CORRIDOR ? areaTypes::CORRIDOR :
+		   type == AREA_TYPE_JUNCTION ? areaTypes::JUNCTION :
 		   type == AREA_TYPE_OPEN_AREA ? areaTypes::OPEN_AREA :
 		   areaTypes::UNKNOWN;
 }
@@ -47,6 +48,7 @@ areaTypes::AreaTypes areaTypes::getType(std::string type) {
 std::string areaTypes::getName(AreaTypes type) {
 	return type == areaTypes::ROOM ? "ROOM" :
 		   type == areaTypes::CORRIDOR ? "CORRIDOR" :
+		   type == areaTypes::JUNCTION ? "JUNCTION" :
 		   type == areaTypes::OPEN_AREA ? "OPEN_AREA" : "UNKNOWN";
 }
 
@@ -198,10 +200,23 @@ void AreasLayer::loadAreaTransitions(const Map& map) {
 			std::string doorType;
 			relation->getTagValue("door", doorType);
 
+			std::string name;
+			relation->getTagValue("name", name);
+
 			AreaTransition transition;
 			transition.doorType = doorTypes::getType(doorType);
 			transition.featureId = relation->primitiveId;
 			transition.associatedAreaIds = std::make_pair(area1.primitiveId, area2.primitiveId);
+			if (name.empty())
+			{
+				// Construct a name for the transition
+				std::stringstream ss;
+				ss << (transition.doorType == doorTypes::NONE ? "AreaTransition-" : "Door-");
+				ss << getArea(transition.associatedAreaIds.first)->name << "-";
+				ss << getArea(transition.associatedAreaIds.second)->name;
+				name = ss.str();
+			}
+			transition.name = name;
 
 			bool success = true;
 			for (unsigned int i = 2; i < relation->members.size(); i++) {

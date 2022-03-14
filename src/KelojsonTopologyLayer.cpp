@@ -75,8 +75,20 @@ void TopologyLayer::loadGeometries(const Map& map) {
 
 				// Create and insert the nodes if not already present in the topologyNodes map
 				TopologyNode start(startId, startNode->position);
-				TopologyNode end(endId, endNode->position);
+				if (!startNode->getTagValue("name", start.name))
+				{
+					std::stringstream ss;
+					ss << "TopologyNode-" << std::abs(start.featureId);
+					start.name = ss.str();
+				}
 				topologyNodes.insert(std::make_pair(start.featureId, start));
+				TopologyNode end(endId, endNode->position);
+				if (!endNode->getTagValue("name", end.name))
+				{
+					std::stringstream ss;
+					ss << "TopologyNode-" << std::abs(end.featureId);
+					end.name = ss.str();
+				}
 				topologyNodes.insert(std::make_pair(end.featureId, end));
 
 				// Create and insert the topology edge
@@ -85,6 +97,11 @@ void TopologyLayer::loadGeometries(const Map& map) {
 				edge.edgeId = topologyEdges.size();
 				edge.startNodeId = startId;
 				edge.endNodeId = endId;
+				std::stringstream ss;
+				ss << "TopologyEdge-" 
+				   << std::abs(start.featureId) << "-"
+				   << std::abs(end.featureId);
+				end.name = ss.str();
 				topologyEdges.insert(std::make_pair(edge.edgeId, edge));
 			}
 		}

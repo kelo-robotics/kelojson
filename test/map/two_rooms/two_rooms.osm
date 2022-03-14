@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' generator='JOSM'>
+  <node id='-104248' action='modify' visible='true' lat='-0.00002654079' lon='-0.0000353352' />
+  <node id='-104249' action='modify' visible='true' lat='0.00000849081' lon='-0.00003551669' />
+  <node id='-104250' action='modify' visible='true' lat='0.00000853907' lon='-0.00002685136' />
+  <node id='-104251' action='modify' visible='true' lat='0.00000857761' lon='-0.00001811591' />
+  <node id='-104252' action='modify' visible='true' lat='0.0000086723' lon='-0.0000004861' />
+  <node id='-104253' action='modify' visible='true' lat='-0.0000263593' lon='-0.00000030461' />
+  <node id='-104255' action='modify' visible='true' lat='-0.00002628122' lon='0.00000028029' />
+  <node id='-104256' action='modify' visible='true' lat='0.00000867484' lon='0.00000006469' />
+  <node id='-104257' action='modify' visible='true' lat='0.00000877814' lon='0.00001763805' />
+  <node id='-104258' action='modify' visible='true' lat='0.00000884183' lon='0.00002631908' />
+  <node id='-104259' action='modify' visible='true' lat='0.00000889052' lon='0.00003503413' />
+  <node id='-104260' action='modify' visible='true' lat='-0.00002606553' lon='0.00003524973' />
+  <node id='-104262' action='modify' visible='true' lat='0.00000925115' lon='-0.00000525874' />
+  <node id='-104263' action='modify' visible='true' lat='0.00000929381' lon='0.00000395042' />
+  <node id='-104264' action='modify' visible='true' lat='0.00002643368' lon='0.00000382466' />
+  <node id='-104265' action='modify' visible='true' lat='0.00002638266' lon='-0.00000533432' />
+  <node id='-104272' action='modify' visible='true' lat='0.00002624916' lon='-0.00003559338' />
+  <node id='-104273' action='modify' visible='true' lat='0.00000896753' lon='-0.00003551714' />
+  <node id='-104274' action='modify' visible='true' lat='0.00000900576' lon='-0.00002685342' />
+  <node id='-104275' action='modify' visible='true' lat='0.00000919441' lon='-0.00001811863' />
+  <node id='-104276' action='modify' visible='true' lat='0.00000939421' lon='0.00001763353' />
+  <node id='-104277' action='modify' visible='true' lat='0.00000932471' lon='0.00002631554' />
+  <node id='-104278' action='modify' visible='true' lat='0.0000093893' lon='0.00003511929' />
+  <node id='-104279' action='modify' visible='true' lat='0.00002666237' lon='0.00003499255' />
+  <way id='-101782' action='modify' visible='true'>
+    <nd ref='-104248' />
+    <nd ref='-104249' />
+    <nd ref='-104250' />
+    <nd ref='-104251' />
+    <nd ref='-104252' />
+    <nd ref='-104253' />
+    <nd ref='-104248' />
+    <tag k='indoor' v='room' />
+    <tag k='layer' v='areas' />
+    <tag k='name' v='Room1' />
+  </way>
+  <way id='-101789' action='modify' visible='true'>
+    <nd ref='-104255' />
+    <nd ref='-104256' />
+    <nd ref='-104257' />
+    <nd ref='-104258' />
+    <nd ref='-104259' />
+    <nd ref='-104260' />
+    <nd ref='-104255' />
+    <tag k='indoor' v='room' />
+    <tag k='layer' v='areas' />
+    <tag k='name' v='Room2' />
+  </way>
+  <way id='-101795' action='modify' visible='true'>
+    <nd ref='-104262' />
+    <nd ref='-104263' />
+    <nd ref='-104264' />
+    <nd ref='-104265' />
+    <nd ref='-104262' />
+    <tag k='indoor' v='junction' />
+    <tag k='layer' v='areas' />
+    <tag k='name' v='Junction' />
+  </way>
+  <way id='-101805' action='modify' visible='true'>
+    <nd ref='-104265' />
+    <nd ref='-104272' />
+    <nd ref='-104273' />
+    <nd ref='-104274' />
+    <nd ref='-104250' />
+    <nd ref='-104251' />
+    <nd ref='-104275' />
+    <nd ref='-104262' />
+    <nd ref='-104265' />
+    <tag k='indoor' v='corridor' />
+    <tag k='layer' v='areas' />
+    <tag k='name' v='Corridor2' />
+  </way>
+  <way id='-101813' action='modify' visible='true'>
+    <nd ref='-104263' />
+    <nd ref='-104276' />
+    <nd ref='-104257' />
+    <nd ref='-104258' />
+    <nd ref='-104277' />
+    <nd ref='-104278' />
+    <nd ref='-104279' />
+    <nd ref='-104264' />
+    <nd ref='-104263' />
+    <tag k='indoor' v='corridor' />
+    <tag k='layer' v='areas' />
+    <tag k='name' v='Corridor1' />
+  </way>
+  <relation id='-99752' action='modify' visible='true'>
+    <member type='way' ref='-101813' role='areas' />
+    <member type='way' ref='-101789' role='areas' />
+    <member type='node' ref='-104257' role='node' />
+    <member type='node' ref='-104258' role='node' />
+    <tag k='door' v='yes' />
+    <tag k='layer' v='areas' />
+    <tag k='type' v='transition' />
+  </relation>
+  <relation id='-99753' visible='true'>
+    <member type='way' ref='-101813' role='areas' />
+    <member type='way' ref='-101795' role='areas' />
+    <member type='node' ref='-104264' role='node' />
+    <member type='node' ref='-104263' role='node' />
+    <tag k='layer' v='areas' />
+    <tag k='type' v='transition' />
+  </relation>
+  <relation id='-99754' action='modify' visible='true'>
+    <member type='way' ref='-101805' role='areas' />
+    <member type='way' ref='-101782' role='areas' />
+    <member type='node' ref='-104250' role='node' />
+    <member type='node' ref='-104251' role='node' />
+    <tag k='door' v='yes' />
+    <tag k='layer' v='areas' />
+    <tag k='type' v='transition' />
+  </relation>
+  <relation id='-99755' visible='true'>
+    <member type='way' ref='-101805' role='areas' />
+    <member type='way' ref='-101795' role='areas' />
+    <member type='node' ref='-104262' role='node' />
+    <member type='node' ref='-104265' role='node' />
+    <tag k='layer' v='areas' />
+    <tag k='type' v='transition' />
+  </relation>
+</osm>
