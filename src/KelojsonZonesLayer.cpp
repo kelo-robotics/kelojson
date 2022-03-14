@@ -1,7 +1,8 @@
 
 #include <iostream>
-#include <geometry_common/LineSegment2D.h>
 #include <geometry_common/Polygon2D.h>
+#include <geometry_common/TransformMatrix2D.h>
+#include <geometry_common/Utils.h>
 
 #include "kelojson_loader/KelojsonMap.h"
 #include "kelojson_loader/KelojsonAreasLayer.h"
@@ -9,6 +10,8 @@
 
 using Polygon2D = kelo::geometry_common::Polygon2D;
 using LineSegment2D = kelo::geometry_common::LineSegment2D;
+using TransformMatrix2D = kelo::geometry_common::TransformMatrix2D;
+using Utils = kelo::geometry_common::Utils;
 
 namespace kelo {
 namespace kelojson {
@@ -19,6 +22,7 @@ zoneTypes::ZoneTypes zoneTypes::getType(std::string type) {
 		   type == ZONE_TYPE_FORBIDDEN ? zoneTypes::FORBIDDEN :
 		   type == ZONE_TYPE_SLOWDOWN ? zoneTypes::SLOWDOWN :
 		   type == ZONE_TYPE_RAMP ? zoneTypes::RAMP :
+		   type == ZONE_TYPE_LOAD_PARKING ? zoneTypes::LOAD_PARKING :
 		   type == ZONE_TYPE_CHARGING_STATION ? zoneTypes::CHARGING_STATION  :
 		   type == ZONE_TYPE_WAITING_LOCATION ? zoneTypes::WAITING_LOCATION  :
 		   type == ZONE_TYPE_OCCLUSION ? zoneTypes::OCCLUSION  : zoneTypes::UNKNOWN;
@@ -30,6 +34,7 @@ std::string zoneTypes::getName(ZoneTypes type) {
 		   type == zoneTypes::FORBIDDEN ? "FORBIDDEN" :
 		   type == zoneTypes::SLOWDOWN ? "SLOWDOWN" :
 		   type == zoneTypes::RAMP ? "RAMP" :
+		   type == zoneTypes::LOAD_PARKING ? "LOAD_PARKING" :
 		   type == zoneTypes::CHARGING_STATION ? "CHARGING_STATION" :
 		   type == zoneTypes::WAITING_LOCATION ? "WAITING_LOCATION" :
 		   type == zoneTypes::OCCLUSION ? "OCCLUSION" : "UNKNOWN";
@@ -147,6 +152,48 @@ std::vector<int> Ramp::getOverlappingAreaTransitionIds(const Map* kelojsonMap) c
 	}
 
 	return overlappingTransitionIds;
+}
+
+LoadParking::LoadParking(int featureId,
+						 const std::vector<Point2D>& coordinates,
+						 const std::string& name) 
+: ZonePolygon(featureId, zoneTypes::LOAD_PARKING, osm::primitiveType::WAY, coordinates, name)
+{
+}
+
+bool LoadParking::valid() const {
+	return coordinates.size() >= 3 &&		// Load parking must atleast be a triangle
+		   primaryOpeningNodes.size() >= 2;	// Minimum two nodes marked as top nodes
+}
+
+std::vector<Point2D> LoadParking::getPrimaryOpeningPositions() const
+{
+	std::vector<Point2D> positions;
+	for (unsigned int nodeOffset: primaryOpeningNodes) {
+		positions.push_back(coordinates[nodeOffset]);
+	}
+	return positions;
+}
+
+std::vector<Point2D> LoadParking::getSecondaryOpeningPositions() const
+{
+	std::vector<Point2D> positions;
+	for (unsigned int nodeOffset: secondaryOpeningNodes) {
+		positions.push_back(coordinates[nodeOffset]);
+	}
+	return positions;
+}
+
+void LoadParking::setBelongsToLoadParkingGroup(const std::string& groupName)
+{
+	if (!belongsToGroup(groupName)) {
+		loadParkingGroups.push_back(groupName);
+	}
+}
+
+bool LoadParking::belongsToGroup(const std::string& groupName) const
+{
+	return std::find(loadParkingGroups.begin(), loadParkingGroups.end(), groupName) != loadParkingGroups.end();
 }
 
 OcclusionRegion::OcclusionRegion(int id)
@@ -494,7 +541,12 @@ void ZonesLayer::loadOsmWays(const Map& map) {
 														coordinates,
 														getRampInclination(way),
 														getZoneName(way))));
-			} else {
+			} else if (zoneType == zoneTypes::LOAD_PARKING) {
+				wayZones.insert(std::make_pair(way->primitiveId, 
+											   new LoadParking(way->primitiveId,
+														coordinates,
+														getZoneName(way))));
+			}  else {
 				wayZones.insert(std::make_pair(way->primitiveId,
 											   new ZonePolygon(way->primitiveId,
 															   zoneType,
@@ -948,56 +1000,34 @@ void ZonesLayer::loadIntralayerAssociations(const Map& map) {
 	int nSuccess = 0;
 	for (unsigned int i = 0; i < relations.size(); i++) {
 		const osm::Relation* relation = map.getOsmRelation(relations[i]);
-		unsigned int minMembers = 5; // The ramp polygon plus min 2 nodes each for bottom and top edge
-		if (relation != NULL && 
-			relation->members.size() >= minMembers &&
-			relation->relationType == RELATION_TYPE_RAMP_EDGES) {
-			const osm::RelationMember& rampMember = relation->members[0];
-			if (zones.find(rampMember.primitiveType) != zones.end() &&
-				zones.at(rampMember.primitiveType).find(rampMember.primitiveId) != zones.at(rampMember.primitiveType).end()) {
-				Ramp* ramp = dynamic_cast<Ramp*>(zones.at(rampMember.primitiveType).at(rampMember.primitiveId));
-				const osm::Way* way = map.getOsmWay(rampMember.primitiveId);
-				if (ramp != NULL && way != NULL) {
-					std::vector<unsigned int> bottomNodeIds, topNodeIds;
-					bool failure = false;
-					for (unsigned int j = 1; !failure && j < relation->members.size(); j++) {
-						const osm::RelationMember& m = relation->members[j];
-						if (m.primitiveType == osm::primitiveType::NODE && m.role == "bottom") {
-							std::vector<int>::const_iterator it = std::find(way->nodeIds.begin(), way->nodeIds.end(), m.primitiveId);
-							if (it != way->nodeIds.end()) {
-								bottomNodeIds.push_back((unsigned int)std::distance(way->nodeIds.begin(), it));
-							} else {
-								failure = true;
-								std::cout << "Failed to find member node " 
-										  << m.primitiveId 
-										  << " marked as a bottom node of ramp "
-										  << rampMember.primitiveId
-										  << std::endl;
-							}
-						}
-						else if (m.primitiveType == osm::primitiveType::NODE && m.role == "top") {
-							std::vector<int>::const_iterator it = std::find(way->nodeIds.begin(), way->nodeIds.end(), m.primitiveId);
-							if (it != way->nodeIds.end()) {
-								topNodeIds.push_back((unsigned int)std::distance(way->nodeIds.begin(), it));
-							} else {
-								failure = true;
-								std::cout << "Failed to find member node " 
-										  << m.primitiveId 
-										  << " marked as a top node of ramp "
-										  << rampMember.primitiveId
-										  << std::endl;
-							}
-						}
-					}
-					if (!failure) {
-						nSuccess++;
-						ramp->setBottomNodes(bottomNodeIds);
-						ramp->setTopNodes(topNodeIds);
-					}
-				}
+		if (relation == NULL)
+			continue;
+		if (relation->relationType == RELATION_TYPE_RAMP_EDGES) {
+			if (loadRampEdges(map, relation)) {
+				nSuccess++;
 			}
 			else {
-				std::cout << "Failed to parse association relation " 
+				std::cout << "Failed to parse load ramp edges relation " 
+						  << relation->primitiveId 
+						  << " in the Zones layer!" 
+						  << std::endl;
+			}
+		}
+		else if (relation->relationType == RELATION_TYPE_LOAD_PARKING_OPENINGS) {
+			if (loadLoadParkingOpenings(map, relation)) {
+				nSuccess++;
+			} else {
+				std::cout << "Failed to parse load parking opening relation " 
+						  << relation->primitiveId 
+						  << " in the Zones layer!" 
+						  << std::endl;
+			}
+		}
+		else if (relation->relationType == RELATION_TYPE_LOAD_PARKING_GROUP) {
+			if (loadLoadParkingGroup(relation)) {
+				nSuccess++;
+			} else {
+				std::cout << "Failed to parse load parking group relation " 
 						  << relation->primitiveId 
 						  << " in the Zones layer!" 
 						  << std::endl;
@@ -1005,8 +1035,160 @@ void ZonesLayer::loadIntralayerAssociations(const Map& map) {
 		}
 	}
 
-	// std::cout << "\tSuccessfully loaded " << nSuccess << "/" << relations.size() 
-	// 		  << " intra-layer relations in the Zones layer" << std::endl; 
+	std::cout << "\tSuccessfully loaded " << nSuccess << "/" << relations.size() 
+			  << " intra-layer relations in the Zones layer" << std::endl;
+}
+
+bool ZonesLayer::loadRampEdges(const Map& map, const osm::Relation* relation)
+{
+	if (relation->members.size() < 5)// The ramp polygon plus min 2 nodes each for bottom and top edge
+		return false;
+
+	ZonesMap& zonePolygons = zones.at(osm::primitiveType::WAY);
+	const osm::RelationMember& rampMember = relation->members[0];
+
+	if (zonePolygons.find(rampMember.primitiveId) == zonePolygons.end()) {
+		return false;
+	}
+
+	Ramp* ramp = dynamic_cast<Ramp*>(zonePolygons.at(rampMember.primitiveId));
+	const osm::Way* way = map.getOsmWay(rampMember.primitiveId);
+	if (ramp == NULL || way == NULL) {
+		return false;
+	}
+
+	std::vector<unsigned int> bottomNodeIds, topNodeIds;
+	for (unsigned int j = 1; j < relation->members.size(); j++) {
+		const osm::RelationMember& m = relation->members[j];
+		if (m.primitiveType != osm::primitiveType::NODE ||
+			(m.role != "bottom" && m.role != "top"))
+			continue;
+
+		std::vector<int>::const_iterator it = std::find(way->nodeIds.begin(), way->nodeIds.end(), m.primitiveId);
+		if (it == way->nodeIds.end())
+			return false;
+
+		unsigned int relativeNodeOffset = (unsigned int)std::distance(way->nodeIds.begin(), it);
+		if (m.role == "bottom") {
+			bottomNodeIds.push_back(relativeNodeOffset);
+		} else {
+			topNodeIds.push_back(relativeNodeOffset);
+		}
+	}
+
+	if (bottomNodeIds.size() < 2 || topNodeIds.size() < 2) {
+		return false;
+	}
+
+	ramp->setBottomNodes(bottomNodeIds);
+	ramp->setTopNodes(topNodeIds);
+	return true;
+}
+
+bool ZonesLayer::loadLoadParkingOpenings(const Map& map, const osm::Relation* relation)
+{
+	if (relation->members.size() < 3 || // The load parking polygon plus min 2 nodes for primary opening
+		zones.find(osm::primitiveType::WAY) == zones.end()) { // There must be a polygon for load parking
+		return false;
+	}
+
+	ZonesMap& zonePolygons = zones.at(osm::primitiveType::WAY);
+	const osm::RelationMember& loadParkingMember = relation->members[0];
+
+	if (zonePolygons.find(loadParkingMember.primitiveId) == zonePolygons.end()) {
+		return false;
+	}
+
+	LoadParking* loadParking = dynamic_cast<LoadParking*>(zonePolygons.at(loadParkingMember.primitiveId));
+	const osm::Way* way = map.getOsmWay(loadParkingMember.primitiveId);
+	if (loadParking == NULL || way == NULL) {
+		return false;
+	}
+
+	std::vector<unsigned int> primaryOpeningNodes, secondaryOpeningNodes;
+	for (unsigned int j = 1; j < relation->members.size(); j++) {
+		const osm::RelationMember& m = relation->members[j];
+		if (m.primitiveType != osm::primitiveType::NODE ||
+			(m.role != "primary_opening" && m.role != "secondary_opening"))
+			continue;
+
+		std::vector<int>::const_iterator it = std::find(way->nodeIds.begin(), way->nodeIds.end(), m.primitiveId);
+		if (it == way->nodeIds.end())
+			return false;
+
+		unsigned int relativeNodeOffset = (unsigned int)std::distance(way->nodeIds.begin(), it);
+		if (m.role == "primary_opening") {
+			primaryOpeningNodes.push_back(relativeNodeOffset);
+		} else {
+			secondaryOpeningNodes.push_back(relativeNodeOffset);
+		}
+	}
+
+	if (primaryOpeningNodes.size() < 2)
+		return false;
+
+	if (secondaryOpeningNodes.size() == 1) {
+		// Secondary opening should either have no nodes OR should have more than 1 node
+		return false;
+	}
+
+	loadParking->setPrimaryOpeningNodes(primaryOpeningNodes);
+	if (secondaryOpeningNodes.size() > 1) {
+		loadParking->setSecondaryOpeningNodes(secondaryOpeningNodes);
+	}
+
+	float orientation = 0.0F;
+	if (way->getTagValue("theta", orientation)) {
+		loadParking->setLoadOrientation(orientation);
+	}
+	else {
+		// Explicit Load Orientation is not defined,
+		// calculate the orientation using the primary opening
+		std::vector<Point2D> primaryOpeningPos = loadParking->getPrimaryOpeningPositions();
+		LineSegment2D primaryOpeningSeg(primaryOpeningPos[0],
+										primaryOpeningPos[primaryOpeningPos.size() - 1]);
+		orientation = Utils::calcPerpendicularAngle(primaryOpeningSeg.angle());
+		Point2D center = primaryOpeningSeg.center();
+		const float displacement = 0.1; // 10 cm
+		// Get a point along the perpendicular at a certain displacement from center
+		Point2D testPt(center.x + (std::cos(orientation) * displacement),
+					   center.y + (std::sin(orientation) * displacement));
+		if (Polygon2D(loadParking->getCoordinatesRef()).containsPoint(testPt))
+		{
+			orientation = Utils::calcReverseAngle(orientation);
+		}
+	}
+	loadParking->setLoadOrientation(orientation);
+
+	return true;
+}
+
+bool ZonesLayer::loadLoadParkingGroup(const osm::Relation* relation) {
+	if (zones.find(osm::primitiveType::WAY) == zones.end())
+		return false;
+	ZonesMap& zonePolygons = zones.at(osm::primitiveType::WAY);
+
+	std::string groupName;
+	relation->getTagValue("name", groupName);
+	if (groupName.empty())
+		return false;
+
+	std::vector<LoadParking*> loadParkingMembers;
+	for (const osm::RelationMember& m : relation->members) {
+		if (m.primitiveType != osm::primitiveType::WAY)
+			return false;
+
+		LoadParking* loadParking = dynamic_cast<LoadParking*>(zonePolygons.at(m.primitiveId));
+		if (!loadParking)
+			return false;
+
+		loadParkingMembers.push_back(loadParking);
+	}
+
+	for (LoadParking* parking : loadParkingMembers) {
+		parking->setBelongsToLoadParkingGroup(groupName);
+	}
+	return true;
 }
 
 std::vector<const ZoneNode*> ZonesLayer::getNodes(zoneTypes::ZoneTypes type) const {

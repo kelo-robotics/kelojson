@@ -29,6 +29,7 @@ const std::string ZONE_TYPE_STAIRS = "stairs";
 const std::string ZONE_TYPE_FORBIDDEN = "forbidden";
 const std::string ZONE_TYPE_SLOWDOWN = "slowdown";
 const std::string ZONE_TYPE_RAMP = "ramp";
+const std::string ZONE_TYPE_LOAD_PARKING = "load_parking";
 const std::string ZONE_TYPE_CHARGING_STATION = "charging-station";
 const std::string ZONE_TYPE_WAITING_LOCATION = "waiting-location";
 const std::string ZONE_TYPE_OCCLUSION = "occlusion";
@@ -41,6 +42,8 @@ const std::string DOOR_TYPE_SLIDING = "sliding";
 const std::string RELATION_TYPE_ASSOCIATION = "association";
 const std::string RELATION_TYPE_TRANSITION = "transition";
 const std::string RELATION_TYPE_RAMP_EDGES = "ramp-edges";
+const std::string RELATION_TYPE_LOAD_PARKING_OPENINGS = "load-parking-openings";
+const std::string RELATION_TYPE_LOAD_PARKING_GROUP = "load-parking-group";
 const std::string RELATION_TYPE_OCCLUSION_REGION = "occlusion_region";
 
 	namespace osm {

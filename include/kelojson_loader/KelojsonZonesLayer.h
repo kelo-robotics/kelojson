@@ -17,6 +17,7 @@ namespace kelojson {
 			FORBIDDEN,
 			SLOWDOWN,
 			RAMP,
+			LOAD_PARKING,
 			CHARGING_STATION,
 			WAITING_LOCATION,
 			OCCLUSION,
@@ -117,6 +118,35 @@ namespace kelojson {
 		double inclination;
 		std::vector<unsigned int> bottomNodes;
 		std::vector<unsigned int> topNodes;
+	};
+
+	class LoadParking : public ZonePolygon {
+	public:
+		LoadParking(int featureId, const std::vector<Point2D>& coordinates, const std::string& name = "");
+		virtual ~LoadParking() {}
+
+		bool valid() const;
+
+		void setPrimaryOpeningNodes(const std::vector<unsigned int>& nodeIndices) { primaryOpeningNodes = nodeIndices; }
+		const std::vector<unsigned int>& getPrimaryOpeningNodes() const { return primaryOpeningNodes; }
+		std::vector<Point2D> getPrimaryOpeningPositions() const;
+
+		void setSecondaryOpeningNodes(const std::vector<unsigned int>& nodeIndices) { secondaryOpeningNodes = nodeIndices; }
+		const std::vector<unsigned int>& getSecondaryOpeningNodes() const { return secondaryOpeningNodes; }
+		std::vector<Point2D> getSecondaryOpeningPositions() const;
+
+		void setLoadOrientation(float orientation) { loadOrientation = orientation; }
+		float getLoadOrientation() const { return loadOrientation; }
+
+		void setBelongsToLoadParkingGroup(const std::string& groupName);
+		bool belongsToGroup(const std::string& groupName) const;
+		const std::vector<std::string>& getAllGroupNames() const { return loadParkingGroups; }
+
+	protected:
+		float loadOrientation{0.0F};
+		std::vector<std::string> loadParkingGroups; // groups to which this load parking belongs
+		std::vector<unsigned int> primaryOpeningNodes;
+		std::vector<unsigned int> secondaryOpeningNodes;
 	};
 
 	class OcclusionRegion {
@@ -283,6 +313,12 @@ namespace kelojson {
 		std::vector<const Ramp*> getIntersectingRamps(const Point2D& start, const Point2D& end) const;
 		std::vector<const Ramp*> getIntersectingRamps(const std::vector<Point2D>& lineString) const;
 
+		bool hasLoadParkings() const;
+		std::vector<const LoadParking*> getAllLoadParkings() const;
+		std::vector<std::string> getAllLoadParkingGroupNames() const;
+		std::vector<const LoadParking*> getAllLoadParkingsInGroup(const std::string& loadParkingGroupName) const;
+		const LoadParking* getLoadParking(const std::string& name) const;
+
 		bool insideForbiddenArea(const Point2D& pos) const;
 
 		ZonesStore zones;
@@ -293,6 +329,10 @@ namespace kelojson {
 		void loadOcclusionRegions(const Map& map);
 		void loadInterlayerAssociations(const Map& map);
 		void loadIntralayerAssociations(const Map& map);
+
+		bool loadRampEdges(const Map& map, const osm::Relation* relation);
+		bool loadLoadParkingOpenings(const Map& map, const osm::Relation* relation);
+		bool loadLoadParkingGroup(const osm::Relation* relation);
 
 		std::vector<const ZoneNode*> getNodes(zoneTypes::ZoneTypes type) const;
 		std::vector<const ZoneLine*> getLines(zoneTypes::ZoneTypes type) const;
