@@ -1,6 +1,7 @@
 #ifndef KELO_KELOJSON_ZONES_LAYER_H
 #define KELO_KELOJSON_ZONES_LAYER_H
 
+#include <geometry_common/Polyline2D.h>
 #include "kelojson_loader/KelojsonLayer.h"
 
 namespace kelo {
@@ -151,16 +152,19 @@ namespace kelojson {
 
 	class OcclusionRegion {
 	public:
-		OcclusionRegion(int featureId);
+		OcclusionRegion(unsigned int internalId);
 		virtual ~OcclusionRegion();
 
+		void setFeatureId(int id) { featureId = id; }
 		int getFeatureId() const;
+
+		unsigned int getInternalId() const { return internalId; }
 
 		void setName(const std::string& name);
 
 		const std::string& getName() const;
 
-		void addOcclusionLine(const ZoneLine* line);
+		void addOcclusionLine(const kelo::geometry_common::Polyline2D& line);
 		void addAreaTransition(const AreaTransition* transition);
 
 		bool overlapsWithLineString(std::vector<Point2D> lineString) const;
@@ -177,10 +181,10 @@ namespace kelojson {
 
 		/**
 		 * @brief Processes the occlusion region as a polygon using the end points of the associated occlusion lines
-		 * and areaTransitions as corners of the polygon. All the associated elements have to be connected in 
+		 * as corners of the polygon. All the associated elements have to be connected in 
 		 * the form of a single line string
 		 * 
-		 * @return true If there are atleast two sets of coordinate vectors (lines/transitions) and they form a connected line string
+		 * @return true If there are atleast two sets of coordinate vectors (lines) and they form a connected line string
 		 * @return false Otherwise
 		 */
 		bool generatePolygonCoords();
@@ -194,10 +198,10 @@ namespace kelojson {
 		const std::vector<Point2D>& asPolygon() const;
 
 	protected:
+		unsigned int internalId;
 		int featureId;
 		std::string name;
-		std::map<int, const ZoneLine*> occlusionLines;
-		std::map<int, const AreaTransition*> areaTransitions;
+		std::vector<kelo::geometry_common::Polyline2D> occlusionLines;
 		std::vector<Point2D> polyCoordinates;
 	};
 
@@ -209,8 +213,9 @@ namespace kelojson {
 		ZonesLayer(const Map* map);
 		virtual ~ZonesLayer();
 		
-		virtual void loadGeometries(const Map& map) /*override*/;
-		virtual void loadRelations(const Map& map) /*override*/;
+		virtual void loadFeatures(const Map& map) override;
+		virtual void loadGeometries(const Map& map) override;
+		virtual void loadRelations(const Map& map) override;
 
 		std::vector<const ZoneNode*> getAllChargingStations() const;
 		std::vector<const ZoneNode*> getAllWaitingLocations() const;
@@ -244,8 +249,7 @@ namespace kelojson {
 		 */
 		std::vector<const ZoneLine*> getNearestOcclusionLines(const Point2D& queryPosition, double searchRadius) const;
 
-		const OcclusionRegion* getOcclusionRegion(int featureId) const;
-		const std::map<int, OcclusionRegion>& getAllOcclusionRegions() const;
+		const std::map<unsigned int, OcclusionRegion>& getAllOcclusionRegions() const;
 
 		/**
 		 * @brief Get the occlusions regions that intersect with the queried path
@@ -326,13 +330,15 @@ namespace kelojson {
 	protected:
 		void loadOsmNodes(const Map& map);
 		void loadOsmWays(const Map& map);
-		void loadOcclusionRegions(const Map& map);
+		void loadOcclusionRegions(const Map& map); // explicitly defined in the map
 		void loadInterlayerAssociations(const Map& map);
 		void loadIntralayerAssociations(const Map& map);
 
 		bool loadRampEdges(const Map& map, const osm::Relation* relation);
 		bool loadLoadParkingOpenings(const Map& map, const osm::Relation* relation);
 		bool loadLoadParkingGroup(const osm::Relation* relation);
+
+		void autoGenerateOcclusionRegions(const Map& map); // at junctions and doors
 
 		std::vector<const ZoneNode*> getNodes(zoneTypes::ZoneTypes type) const;
 		std::vector<const ZoneLine*> getLines(zoneTypes::ZoneTypes type) const;
@@ -342,7 +348,7 @@ namespace kelojson {
 		zoneTypes::ZoneTypes getZoneType(const osm::Primitive* primitive) const;
 		double getRampInclination(const osm::Primitive* primitive) const;
 
-		std::map<int, OcclusionRegion> occlusionRegions;
+		std::map<unsigned int, OcclusionRegion> occlusionRegions;
 	};
 }
 }

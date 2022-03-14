@@ -8,6 +8,7 @@
 #include "kelojson_loader/KelojsonAreasLayer.h"
 #include "kelojson_loader/KelojsonZonesLayer.h"
 
+using Polyline2D = kelo::geometry_common::Polyline2D;
 using Polygon2D = kelo::geometry_common::Polygon2D;
 using LineSegment2D = kelo::geometry_common::LineSegment2D;
 using TransformMatrix2D = kelo::geometry_common::TransformMatrix2D;
@@ -196,8 +197,8 @@ bool LoadParking::belongsToGroup(const std::string& groupName) const
 	return std::find(loadParkingGroups.begin(), loadParkingGroups.end(), groupName) != loadParkingGroups.end();
 }
 
-OcclusionRegion::OcclusionRegion(int id)
-: featureId(id) {
+OcclusionRegion::OcclusionRegion(unsigned int id)
+: internalId(id) {
 }
 
 OcclusionRegion::~OcclusionRegion() {
@@ -215,20 +216,21 @@ const std::string& OcclusionRegion::getName() const{
 	return name;
 }
 
-void OcclusionRegion::addOcclusionLine(const ZoneLine* line) {
-	if (!line || occlusionLines.find(line->getFeatureId()) != occlusionLines.end()) {
-		return;
+void OcclusionRegion::addOcclusionLine(const kelo::geometry_common::Polyline2D& line) {
+	for (const auto& l : occlusionLines) {
+		if (l == line) {
+			return;
+		}
 	}
 
-	occlusionLines.insert(std::make_pair(line->getFeatureId(), line));
+	occlusionLines.push_back(line);
 }
 
 void OcclusionRegion::addAreaTransition(const AreaTransition* transition) {
-	if (!transition || areaTransitions.find(transition->featureId) != areaTransitions.end()) {
+	if (!transition) {
 		return;
 	}
-
-	areaTransitions.insert(std::make_pair(transition->featureId, transition));
+	addOcclusionLine(kelo::geometry_common::Polyline2D(transition->coordinates));
 }
 
 bool OcclusionRegion::overlapsWithLineString(std::vector<Point2D> lineString) const {
@@ -243,18 +245,11 @@ bool OcclusionRegion::overlapsWithLineString(std::vector<Point2D> lineString) co
 bool OcclusionRegion::overlapsWithLineSegment(Point2D lineSegStart, Point2D lineSegEnd) const {
 	bool overlaps = false;
 
-	for (std::map<int, const ZoneLine*>::const_iterator itr = occlusionLines.begin(); itr != occlusionLines.end() && !overlaps; itr++) {
-		const ZoneLine* occlusionLine = itr->second;
-		if (!occlusionLine || occlusionLine->getCoordinatesRef().size() < 2)
+	for (auto itr = occlusionLines.begin(); itr != occlusionLines.end() && !overlaps; itr++) {
+		const Polyline2D& occlusionLine = *itr;
+		if (occlusionLine.size() < 2)
 			continue;
-		overlaps = Polygon2D(occlusionLine->getCoordinatesRef()).intersects(LineSegment2D(lineSegStart, lineSegEnd));
-	}
-
-	for (std::map<int, const AreaTransition*>::const_iterator itr = areaTransitions.begin(); itr != areaTransitions.end() && !overlaps; itr++) {
-		const AreaTransition* transition = itr->second;
-		if (!transition || transition->coordinates.size() < 2)
-			continue;
-		overlaps = Polygon2D(transition->coordinates).intersects(LineSegment2D(lineSegStart, lineSegEnd));
+		overlaps = occlusionLine.intersects(LineSegment2D(lineSegStart, lineSegEnd));
 	}
 
 	return overlaps;
@@ -277,24 +272,13 @@ bool OcclusionRegion::getFirstPointOfContactWithLineSegment(Point2D lineSegStart
 	std::map<int, Point2D> contactPoints;
 	LineSegment2D segment(lineSegStart, lineSegEnd);
 
-	for (std::map<int, const ZoneLine*>::const_iterator itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
-		const ZoneLine* occlusionLine = itr->second;
-		if (!occlusionLine || occlusionLine->getCoordinatesRef().size() < 2)
+	for (auto itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
+		const Polyline2D& occlusionLine = *itr;
+		if (occlusionLine.size() < 2)
 			continue;
 
 		Point2D closestContactPoint;
-		if (Polygon2D(occlusionLine->getCoordinatesRef()).calcClosestIntersectionPointWith(segment, closestContactPoint)) {
-			contactPoints.insert(std::make_pair(lineSegStart.distTo(closestContactPoint), closestContactPoint));
-		}
-	}
-
-	for (std::map<int, const AreaTransition*>::const_iterator itr = areaTransitions.begin(); itr != areaTransitions.end(); itr++) {
-		const AreaTransition* transition = itr->second;
-		if (!transition || transition->coordinates.size() < 2)
-			continue;
-
-		Point2D closestContactPoint;
-		if (Polygon2D(transition->coordinates).calcClosestIntersectionPointWith(segment, closestContactPoint)) {
+		if (occlusionLine.calcClosestIntersectionPointWith(segment, closestContactPoint)) {
 			contactPoints.insert(std::make_pair(lineSegStart.distTo(closestContactPoint), closestContactPoint));
 		}
 	}
@@ -308,26 +292,13 @@ bool OcclusionRegion::getFirstPointOfContactWithLineSegment(Point2D lineSegStart
 
 double OcclusionRegion::dist(const Point2D& queryPoint) const {
 	double minDist = std::numeric_limits<double>::max();
-	for (std::map<int, const ZoneLine*>::const_iterator itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
-		const ZoneLine* occlusionLine = itr->second;
-		if (!occlusionLine || occlusionLine->getCoordinatesRef().size() < 2)
+	for (auto itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
+		const Polyline2D& occlusionLine = *itr;
+		if (occlusionLine.size() < 2)
 			continue;
 
-		for (unsigned int i = 0; i < occlusionLine->getCoordinatesRef().size(); i++) {
-			double dist = queryPoint.distTo(occlusionLine->getCoordinatesRef()[i]);
-			if (dist < minDist) {
-				minDist = dist;
-			}
-		}
-	}
-
-	for (std::map<int, const AreaTransition*>::const_iterator itr = areaTransitions.begin(); itr != areaTransitions.end(); itr++) {
-		const AreaTransition* transition = itr->second;
-		if (!transition || transition->coordinates.size() < 2)
-			continue;
-
-		for (unsigned int i = 0; i < transition->coordinates.size(); i++) {
-			double dist = queryPoint.distTo(transition->coordinates[i]);
+		for (unsigned int i = 0; i < occlusionLine.size(); i++) {
+			double dist = queryPoint.distTo(occlusionLine[i]);
 			if (dist < minDist) {
 				minDist = dist;
 			}
@@ -345,23 +316,17 @@ bool OcclusionRegion::contains(const Point2D& point) const {
 }
 
 bool OcclusionRegion::empty() const {
-	return areaTransitions.empty() && occlusionLines.empty();
+	return occlusionLines.empty();
 }
 
 bool OcclusionRegion::generatePolygonCoords() {
 	polyCoordinates.clear(); // clear previously generated poly coordinates
 
 	std::vector< std::vector<Point2D> > lineStrings;
-	for (std::map<int, const kelojson::ZoneLine*>::const_iterator itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
-		const kelojson::ZoneLine* line = itr->second;
-		if (line && line->getCoordinatesRef().size() > 1) {
-			lineStrings.push_back(line->getCoordinates());
-		}
-	}
-	for (std::map<int, const kelojson::AreaTransition*>::const_iterator itr = areaTransitions.begin(); itr != areaTransitions.end(); itr++) {
-		const kelojson::AreaTransition* transition = itr->second;
-		if (transition && transition->coordinates.size() > 1) {
-			lineStrings.push_back(transition->coordinates);
+	for (auto itr = occlusionLines.begin(); itr != occlusionLines.end(); itr++) {
+		const Polyline2D& line = *itr;
+		if (line.size() > 1) {
+			lineStrings.push_back(line.vertices);
 		}
 	}
 
@@ -457,6 +422,11 @@ ZonesLayer::~ZonesLayer() {
 		itr1->second.clear();
 	}
 	zones.clear();
+}
+
+void ZonesLayer::loadFeatures(const Map& map) {
+	Layer::loadFeatures(map);
+	autoGenerateOcclusionRegions(map);
 }
 
 void ZonesLayer::loadGeometries(const Map& map) {
@@ -658,20 +628,7 @@ std::vector<const ZoneLine*> ZonesLayer::getNearestOcclusionLines(const Point2D&
 	return lines;
 }
 
-const OcclusionRegion* ZonesLayer::getOcclusionRegion(int featureId) const {
-	const OcclusionRegion* region = NULL;
-	const std::map<int, OcclusionRegion>& occRegions = getAllOcclusionRegions();
-
-	for (std::map<int, OcclusionRegion>::const_iterator itr = occRegions.begin(); itr != occRegions.end(); itr++) {
-		if (itr->second.getFeatureId() == featureId) {
-			region = &(itr->second);
-			break;
-		}
-	}
-	return region;
-}
-
-const std::map<int, OcclusionRegion>& ZonesLayer::getAllOcclusionRegions() const {
+const std::map<unsigned int, OcclusionRegion>& ZonesLayer::getAllOcclusionRegions() const {
 	return occlusionRegions;
 }
 
@@ -685,7 +642,7 @@ std::vector< std::vector<const OcclusionRegion*> > ZonesLayer::getIntersectingOc
 		std::multimap<double, const OcclusionRegion*> intersectingOcclusions;
 		Point2D segStart = path[i];
 		Point2D segEnd = path[i + 1];
-		for (std::map<int, OcclusionRegion>::const_iterator itr = occlusionRegions.begin(); itr != occlusionRegions.end(); itr++) {
+		for (std::map<unsigned int, OcclusionRegion>::const_iterator itr = occlusionRegions.begin(); itr != occlusionRegions.end(); itr++) {
 			Point2D contactPoint;
 			if (itr->second.getFirstPointOfContactWithLineSegment(segStart, segEnd, contactPoint)) {
 				intersectingOcclusions.insert(std::make_pair(segStart.distTo(contactPoint), &(itr->second)));
@@ -715,7 +672,7 @@ std::vector<const OcclusionRegion*> ZonesLayer::getNearestOcclusionRegions(const
 	std::vector<const OcclusionRegion*> regions;
 	std::multimap<double, const OcclusionRegion*> nearestRegionsMap; // sort and store the nearest lines
 
-	for (std::map<int, OcclusionRegion>::const_iterator itr = occlusionRegions.begin(); itr != occlusionRegions.end(); itr++) {
+	for (std::map<unsigned int, OcclusionRegion>::const_iterator itr = occlusionRegions.begin(); itr != occlusionRegions.end(); itr++) {
 		double distToOcclusionRegion = itr->second.dist(queryPosition);
 		if (distToOcclusionRegion < searchRadius) {
 			nearestRegionsMap.insert(std::make_pair(distToOcclusionRegion, &(itr->second)));
@@ -736,7 +693,7 @@ std::vector< std::vector<Point2D> > ZonesLayer::getOcclusionPointAlongPath(const
 	if (occRegions.size() != path.size() - 1)
 		return edgeOcclusions;
 
-	std::vector<int> processedOccRegions;
+	std::vector<unsigned int> processedOccRegions;
 	for (unsigned int edgeIdx = 0; (edgeIdx + 1) < path.size(); edgeIdx++) {
 		std::vector<const OcclusionRegion*> intersectingOcclusions = occRegions[edgeIdx];
 		if (!intersectingOcclusions.empty()) {
@@ -745,7 +702,7 @@ std::vector< std::vector<Point2D> > ZonesLayer::getOcclusionPointAlongPath(const
 				const OcclusionRegion* occlusion = intersectingOcclusions[occIdx];
 				if (!occlusion || std::find(processedOccRegions.begin(),
 											processedOccRegions.end(),
-											occlusion->getFeatureId()) != processedOccRegions.end())
+											occlusion->getInternalId()) != processedOccRegions.end())
 					continue;
 
 				Point2D intPoint;
@@ -758,7 +715,7 @@ std::vector< std::vector<Point2D> > ZonesLayer::getOcclusionPointAlongPath(const
 					if (!occlusion->contains(pointBeforeIntersection)) {
 						// Add the intersection point only when entering an occlusion region for first time
 						intersectionPts.push_back(intPoint);
-						processedOccRegions.push_back(occlusion->getFeatureId());
+						processedOccRegions.push_back(occlusion->getInternalId());
 					}
 				}
 			}
@@ -881,7 +838,8 @@ void ZonesLayer::loadOcclusionRegions(const Map& map) {
 		if (relation != NULL && 
 			relation->members.size() > 0 &&
 			relation->relationType == RELATION_TYPE_OCCLUSION_REGION) {
-			OcclusionRegion occlusionRegion(relation->primitiveId);
+			OcclusionRegion occlusionRegion(occlusionRegions.size());
+			occlusionRegion.setFeatureId(relation->primitiveId);
 			for (unsigned int mId = 0; mId < relation->members.size(); mId++) {
 				const osm::RelationMember& member = relation->members[mId];
 				if (member.role == "transition") {
@@ -903,7 +861,7 @@ void ZonesLayer::loadOcclusionRegions(const Map& map) {
 				} else if (member.role == "line") {
 					const ZoneLine* occlusionLine = getOcclusionLine(member.primitiveId);
 					if (occlusionLine) {
-						occlusionRegion.addOcclusionLine(occlusionLine);
+						occlusionRegion.addOcclusionLine(Polyline2D(occlusionLine->getCoordinatesRef()));
 					} else {
 						std::cout << "Failed to occlusion line associated with Occlusion region: "
 								  << relation->primitiveId << ". Occlusion line not found in Zones Layer!" << std::endl;
@@ -928,7 +886,7 @@ void ZonesLayer::loadOcclusionRegions(const Map& map) {
 				}
 				occlusionRegion.setName(name);
 				occlusionRegion.generatePolygonCoords();
-				occlusionRegions.insert(std::make_pair(occlusionRegion.getFeatureId(), occlusionRegion));
+				occlusionRegions.insert(std::make_pair(occlusionRegion.getInternalId(), occlusionRegion));
 				nSuccess++;
 			}
 		}
@@ -1189,6 +1147,84 @@ bool ZonesLayer::loadLoadParkingGroup(const osm::Relation* relation) {
 		parking->setBelongsToLoadParkingGroup(groupName);
 	}
 	return true;
+}
+
+void ZonesLayer::autoGenerateOcclusionRegions(const Map& map) {
+	const AreasLayer* areasLayer = map.getAreasLayer();
+	if (!areasLayer || areasLayer->areas.empty())
+		return;
+
+	// Generate occlusion regions at junctions
+	for (const auto& a : areasLayer->areas) {
+		const Area& area = a.second;
+		if (area.areaType != areaTypes::JUNCTION)
+			continue;
+
+		OcclusionRegion occRegion(occlusionRegions.size());
+		for (const auto& ta : area.transitions) {
+			const std::set<AreaTransition>& transitionWithArea = ta.second;
+			for (const AreaTransition& transition : transitionWithArea) {
+				occRegion.addAreaTransition(&transition);
+			}
+		}
+		if (!occRegion.empty() && occRegion.generatePolygonCoords()) {
+			// Construct a name for the occlusion region
+			std::stringstream ss;
+			ss << "Junction-" << area.name << "-OcclusionRegion";
+			occRegion.setName(ss.str());
+			occlusionRegions.insert(std::make_pair(occRegion.getInternalId(), occRegion));
+		}
+	}
+
+	// Generate occlusion regions at doors
+	for (const auto& t : areasLayer->getAllAreaTransitions()) {
+		const AreaTransition* transition = t.second;
+		if (transition && transition->isDoor()) {
+			const std::vector<Point2D>& coords =  transition->coordinates;
+			if (coords.size() < 2)
+				continue;
+
+			LineSegment2D doorSeg(coords.front(), coords.back());
+			float perpAngle = Utils::calcPerpendicularAngle(doorSeg.angle());
+			Point2D unitVec(std::cos(perpAngle), std::sin(perpAngle));
+			const float maxPerpDistFromDoor = 2.5F; // meters
+
+			std::vector<Point2D> firstEdge{coords.front(),
+										   coords.front() + (unitVec * maxPerpDistFromDoor)};
+			std::vector<Point2D> secondEdge{coords.back(),
+											coords.back() + (unitVec * maxPerpDistFromDoor)};
+			std::vector<Point2D> thirdEdge{coords.front(),
+										   coords.front() - (unitVec * maxPerpDistFromDoor)};
+			std::vector<Point2D> fourthEdge{coords.back(),
+											coords.back() - (unitVec * maxPerpDistFromDoor)};
+
+			OcclusionRegion occRegion1(occlusionRegions.size());
+			// The order of adding the below 3 elements to occ region is crucial.
+			// The transition must be the second element among the three elements
+			occRegion1.addOcclusionLine(firstEdge);
+			occRegion1.addAreaTransition(transition);
+			occRegion1.addOcclusionLine(secondEdge);
+			if (!occRegion1.empty() && occRegion1.generatePolygonCoords()) {
+				// Construct a name for the occlusion region
+				std::stringstream ss;
+				ss << "Door-" << transition->name << "-OcclusionRegion-1";
+				occRegion1.setName(ss.str());
+				occlusionRegions.insert(std::make_pair(occRegion1.getInternalId(), occRegion1));
+			}
+
+			OcclusionRegion occRegion2(occlusionRegions.size());
+			occRegion2.addAreaTransition(transition);
+			occRegion2.addOcclusionLine(thirdEdge);
+			occRegion2.addOcclusionLine(fourthEdge);
+			if (!occRegion2.empty() && occRegion2.generatePolygonCoords()) {
+				// Construct a name for the occlusion region
+				std::stringstream ss;
+				ss << "Door-" << transition->name << "-OcclusionRegion-2";
+				occRegion2.setName(ss.str());
+				occlusionRegions.insert(std::make_pair(occRegion2.getInternalId(), occRegion2));
+			}
+		}
+	}
 }
 
 std::vector<const ZoneNode*> ZonesLayer::getNodes(zoneTypes::ZoneTypes type) const {
