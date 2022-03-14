@@ -40,6 +40,7 @@ double AreaTransition::width() const {
 areaTypes::AreaTypes areaTypes::getType(std::string type) {
 	return type == AREA_TYPE_ROOM ? areaTypes::ROOM :
 		   type == AREA_TYPE_CORRIDOR ? areaTypes::CORRIDOR :
+		   type == AREA_TYPE_JUNCTION ? areaTypes::JUNCTION :
 		   type == AREA_TYPE_OPEN_AREA ? areaTypes::OPEN_AREA :
 		   areaTypes::UNKNOWN;
 }
@@ -47,6 +48,7 @@ areaTypes::AreaTypes areaTypes::getType(std::string type) {
 std::string areaTypes::getName(AreaTypes type) {
 	return type == areaTypes::ROOM ? "ROOM" :
 		   type == areaTypes::CORRIDOR ? "CORRIDOR" :
+		   type == areaTypes::JUNCTION ? "JUNCTION" :
 		   type == areaTypes::OPEN_AREA ? "OPEN_AREA" : "UNKNOWN";
 }
 
