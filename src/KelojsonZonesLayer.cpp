@@ -1267,8 +1267,8 @@ void ZonesLayer::autoGenerateOcclusionRegions(const Map& map) {
 			}
 
 			OcclusionRegion occRegion2(occlusionRegions.size());
-			occRegion2.addAreaTransition(transition);
 			occRegion2.addOcclusionLine(thirdEdge);
+			occRegion2.addAreaTransition(transition);
 			occRegion2.addOcclusionLine(fourthEdge);
 			if (!occRegion2.empty() && occRegion2.generatePolygonCoords()) {
 				// Construct a name for the occlusion region
