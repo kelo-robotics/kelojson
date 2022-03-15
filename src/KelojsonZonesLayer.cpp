@@ -197,6 +197,13 @@ bool LoadParking::belongsToGroup(const std::string& groupName) const
 	return std::find(loadParkingGroups.begin(), loadParkingGroups.end(), groupName) != loadParkingGroups.end();
 }
 
+Pose2D LoadParking::getPrimaryOpeningCenterPose() const
+{
+	const auto primaryOpening = getPrimaryOpeningPositions();
+	kelo::geometry_common::LineSegment2D seg(primaryOpening.front(), primaryOpening.back());
+	return Pose2D(seg.center(), getLoadOrientation());
+}
+
 OcclusionRegion::OcclusionRegion(unsigned int id)
 : internalId(id) {
 }
