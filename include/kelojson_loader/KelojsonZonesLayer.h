@@ -143,6 +143,8 @@ namespace kelojson {
 		bool belongsToGroup(const std::string& groupName) const;
 		const std::vector<std::string>& getAllGroupNames() const { return loadParkingGroups; }
 
+		Pose2D getPrimaryOpeningCenterPose() const;
+
 	protected:
 		float loadOrientation{0.0F};
 		std::vector<std::string> loadParkingGroups; // groups to which this load parking belongs
