@@ -197,6 +197,13 @@ bool LoadParking::belongsToGroup(const std::string& groupName) const
 	return std::find(loadParkingGroups.begin(), loadParkingGroups.end(), groupName) != loadParkingGroups.end();
 }
 
+Pose2D LoadParking::getPrimaryOpeningCenterPose() const
+{
+	const auto primaryOpening = getPrimaryOpeningPositions();
+	kelo::geometry_common::LineSegment2D seg(primaryOpening.front(), primaryOpening.back());
+	return Pose2D(seg.center(), getLoadOrientation());
+}
+
 OcclusionRegion::OcclusionRegion(unsigned int id)
 : internalId(id) {
 }
@@ -814,6 +821,53 @@ std::vector<const Ramp*> ZonesLayer::getIntersectingRamps(const std::vector<Poin
 	}
 
 	return intersectingRamps;
+}
+
+bool ZonesLayer::hasLoadParkings() const {
+	return !getAllLoadParkings().empty();
+}
+
+std::vector<const LoadParking*> ZonesLayer::getAllLoadParkings() const {
+	std::vector<const LoadParking*> loadParkings;
+	std::vector<const ZonePolygon*> polygons = getPolygons(zoneTypes::LOAD_PARKING);
+	for (unsigned int i = 0; i < polygons.size(); i++) {
+		const LoadParking* loadParking = dynamic_cast<const LoadParking*>(polygons[i]);
+		if (loadParking != NULL) {
+			loadParkings.push_back(loadParking);
+		}
+	}
+	return loadParkings;
+}
+
+std::vector<std::string> ZonesLayer::getAllLoadParkingGroupNames() const {
+	std::set<std::string> groupNames;
+	for (const LoadParking* loadParking : getAllLoadParkings()) {
+		if (!loadParking)
+			continue;
+		for (const auto& name : loadParking->getAllGroupNames()) {
+			groupNames.insert(name);
+		}
+	}
+	return std::vector<std::string>(groupNames.begin(), groupNames.end());
+}
+
+std::vector<const LoadParking*> ZonesLayer::getAllLoadParkingsInGroup(const std::string& loadParkingGroupName) const {
+	std::vector<const LoadParking*> loadParkings;
+	for (const LoadParking* loadParking : getAllLoadParkings()) {
+		if (loadParking && loadParking->belongsToGroup(loadParkingGroupName)) {
+			loadParkings.push_back(loadParking);
+		}
+	}
+	return loadParkings;
+}
+
+const LoadParking* ZonesLayer::getLoadParking(const std::string& name) const {
+	for (const LoadParking* loadParking : getAllLoadParkings()) {
+		if (loadParking && loadParking->getName() == name) {
+			return loadParking;
+		}
+	}
+	return NULL;
 }
 
 bool ZonesLayer::insideForbiddenArea(const Point2D& pos) const {
