@@ -98,8 +98,20 @@ ZonePolygon::ZonePolygon(int featId, zoneTypes::ZoneTypes type, osm::primitiveTy
 {
 }
 
+Polygon2D ZonePolygon::asPolygon2D() const {
+	Polygon2D polygon(coordinates);
+	if (polygon.vertices.front() == polygon.vertices.back()) {
+		polygon.vertices.pop_back();
+	}
+	return polygon;
+}
+
 bool ZonePolygon::contains(Point2D point) const {
-	return Polygon2D(coordinates).containsPoint(point);
+	return asPolygon2D().containsPoint(point);
+}
+
+Point2D ZonePolygon::meanPoint() const {
+	return asPolygon2D().meanPoint();
 }
 
 Ramp::Ramp(int featureId, zoneTypes::ZoneTypes zoneType,
@@ -132,7 +144,7 @@ std::vector<Point2D> Ramp::getTopNodePositions() const {
 }
 
 bool Ramp::intersectsEdge(const Point2D& edgeStart, const Point2D& edgeEnd) const {
-	return Polygon2D(coordinates).intersects(LineSegment2D(edgeStart, edgeEnd));
+	return asPolygon2D().intersects(LineSegment2D(edgeStart, edgeEnd));
 }
 
 std::vector<int> Ramp::getOverlappingAreaTransitionIds(const Map* kelojsonMap) const {
@@ -326,7 +338,7 @@ double OcclusionRegion::dist(const Point2D& queryPoint) const {
 
 bool OcclusionRegion::contains(const Point2D& point) const {
 	if (!polyCoordinates.empty()) {
-		return Polygon2D(polyCoordinates).containsPoint(point);
+		return asPolygon2D().containsPoint(point);
 	}
 	return false;
 }
@@ -420,8 +432,12 @@ bool OcclusionRegion::generatePolygonCoords() {
 	return success;
 }
 
-const std::vector<Point2D>& OcclusionRegion::asPolygon() const {
-	return polyCoordinates;
+Polygon2D OcclusionRegion::asPolygon2D() const{
+	Polygon2D polygon(polyCoordinates);
+	if (polygon.vertices.front() == polygon.vertices.back()) {
+		polygon.vertices.pop_back();
+	}
+	return polygon;
 }
 
 ZonesLayer::ZonesLayer(const Map* map)
@@ -599,7 +615,7 @@ std::vector< std::vector<const ZoneLine*> > ZonesLayer::getIntersectingOcclusion
 			if (!occlusions[j] || occlusions[j]->getCoordinatesRef().size() < 2)
 				continue;
 
-			if (Polygon2D(occlusions[j]->getCoordinatesRef()).intersects(LineSegment2D(segStart, segEnd))) {
+			if (Polyline2D(occlusions[j]->getCoordinatesRef()).intersects(LineSegment2D(segStart, segEnd))) {
 				segIntersections.push_back(occlusions[j]);
 			}
 		}
@@ -1174,7 +1190,7 @@ bool ZonesLayer::loadLoadParkingOpenings(const Map& map, const osm::Relation* re
 		// Get a point along the perpendicular at a certain displacement from center
 		Point2D testPt(center.x + (std::cos(orientation) * displacement),
 					   center.y + (std::sin(orientation) * displacement));
-		if (Polygon2D(loadParking->getCoordinatesRef()).containsPoint(testPt))
+		if (loadParking->contains(testPt))
 		{
 			orientation = Utils::calcReverseAngle(orientation);
 		}

@@ -89,10 +89,11 @@ namespace kelojson {
 		virtual ~ZonePolygon() {}
 		inline std::vector<Point2D> getCoordinates() const { return coordinates; }
 		inline const std::vector<Point2D>& getCoordinatesRef() const { return coordinates; }
+		geometry_common::Polygon2D asPolygon2D() const;
 
 		bool contains(Point2D point) const;
 
-		Point2D meanPoint() const override { return geometry_common::Polygon2D(coordinates).meanPoint(); }
+		Point2D meanPoint() const override;
 
 	protected:
 		std::vector<Point2D> coordinates;
@@ -198,13 +199,7 @@ namespace kelojson {
 		 */
 		bool generatePolygonCoords();
 
-		/**
-		 * @brief Get the polygonal representation of the occlusion regions as a closed line loop
-		 * 
-		 * @return const std::vector<Point2D>& coordinates of the single connected line string (forming a polygon) of all the associated coordinate vectors.
-		 * 								   Otherwise an empty list.
-		 */
-		const std::vector<Point2D>& asPolygon() const;
+		geometry_common::Polygon2D asPolygon2D() const;
 
 	protected:
 		unsigned int internalId;
