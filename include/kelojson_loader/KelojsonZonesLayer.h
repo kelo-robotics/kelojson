@@ -1,7 +1,7 @@
 #ifndef KELO_KELOJSON_ZONES_LAYER_H
 #define KELO_KELOJSON_ZONES_LAYER_H
 
-#include <geometry_common/Polyline2D.h>
+#include <geometry_common/Polygon2D.h>
 #include "kelojson_loader/KelojsonLayer.h"
 
 namespace kelo {
@@ -40,6 +40,7 @@ namespace kelojson {
 		bool hasName() const;
 		std::string getName() const;
 		std::vector<int> getOverlappingAreaIds() const;
+		virtual Point2D meanPoint() const = 0;
 
 		std::map<layerType::LayerType, std::set<int> >& getInterlayerAssociations() { return interlayerAssociations; }
 
@@ -59,6 +60,8 @@ namespace kelojson {
 		virtual ~ZoneNode() {}
 		inline Pose2D getPose() const { return pose; }
 
+		Point2D meanPoint() const override { return Point2D(pose.x, pose.x); }
+
 	protected:
 		Pose2D pose;
 	};
@@ -71,6 +74,8 @@ namespace kelojson {
 		virtual ~ZoneLine() {}
 		inline std::vector<Point2D> getCoordinates() const { return coordinates; }
 		inline const std::vector<Point2D>& getCoordinatesRef() const { return coordinates; }
+
+		Point2D meanPoint() const override;
 
 	protected:
 		std::vector<Point2D> coordinates;
@@ -86,6 +91,8 @@ namespace kelojson {
 		inline const std::vector<Point2D>& getCoordinatesRef() const { return coordinates; }
 
 		bool contains(Point2D point) const;
+
+		Point2D meanPoint() const override { return geometry_common::Polygon2D(coordinates).meanPoint(); }
 
 	protected:
 		std::vector<Point2D> coordinates;

@@ -83,6 +83,15 @@ ZoneLine::ZoneLine(int featId, zoneTypes::ZoneTypes type, osm::primitiveType::Pr
 {
 }
 
+Point2D ZoneLine::meanPoint() const {
+	Point2D mean;
+	for (const auto& vertex: coordinates) {
+		mean = mean + vertex;
+	}
+	mean = mean * (1.0f/coordinates.size());
+	return mean;
+}
+
 ZonePolygon::ZonePolygon(int featId, zoneTypes::ZoneTypes type, osm::primitiveType::PrimitiveType primType, const std::vector<Point2D>& coords, const std::string& zoneName)
 : Zone(featId, type, primType, zoneName)
 , coordinates(coords)
