@@ -8,12 +8,21 @@
 
 using namespace kelo::kelojson;
 
-TEST(KeloJsonMap, simpleCreation)
+class MapFixture : public ::testing::Test
 {
-    std::string kelojson_map_file = mkstr(KELOJSON_TEST_MAP_FILE);
-    Map kelojson_map;
-    EXPECT_TRUE(kelojson_map.loadFile(kelojson_map_file));
+    public:
+        void SetUp()
+        {
+            std::string kelojson_map_file = mkstr(KELOJSON_TEST_MAP_FILE);
+            EXPECT_TRUE(kelojson_map.loadFile(kelojson_map_file));
+        }
 
+    protected:
+        Map kelojson_map;
+};
+
+TEST(KelojsonMap, incorrectCreation)
+{
     std::string wrong_kelojson_map_file = mkstr(KELOJSON_TEST_MAP_FILE);
     wrong_kelojson_map_file += ".wrong";
     Map wrong_kelojson_map;
@@ -24,12 +33,8 @@ TEST(KeloJsonMap, simpleCreation)
     EXPECT_FALSE(empty_kelojson_map.loadFromString(empty_kelojson_map_string));
 }
 
-TEST(KeloJsonMap, getOsmPrimitives)
+TEST_F(MapFixture, getOsmPrimitives)
 {
-    std::string kelojson_map_file = mkstr(KELOJSON_TEST_MAP_FILE);
-    Map kelojson_map;
-    EXPECT_TRUE(kelojson_map.loadFile(kelojson_map_file));
-
     const osm::Node* node = kelojson_map.getOsmNode(-104248);
     EXPECT_NE(node, nullptr);
     EXPECT_EQ(node->position, kelo::geometry_common::Point2D(-1.9369, -1.9592));
@@ -42,4 +47,15 @@ TEST(KeloJsonMap, getOsmPrimitives)
     const osm::Relation* relation = kelojson_map.getOsmRelation(-99769);
     EXPECT_NE(relation, nullptr);
     EXPECT_EQ(relation->relationType, "association");
+}
+
+TEST_F(MapFixture, layerGetters)
+{
+    std::vector<layerType::LayerType> layer_types = kelojson_map.getAvailableLayerTypes();
+    EXPECT_EQ(layer_types.size(), 5u);
+    EXPECT_EQ(layer_types[0], layerType::LayerType::UNDEFINED);
+    EXPECT_EQ(layer_types[1], layerType::LayerType::AREAS);
+    EXPECT_EQ(layer_types[2], layerType::LayerType::ZONES);
+    EXPECT_EQ(layer_types[3], layerType::LayerType::TOPOLOGY);
+    EXPECT_EQ(layer_types[4], layerType::LayerType::OCCUPANCY_GRID);
 }
