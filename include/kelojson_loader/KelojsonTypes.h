@@ -36,6 +36,7 @@ const std::string ZONE_TYPE_WAITING_LOCATION = "waiting_location";
 const std::string ZONE_TYPE_OCCLUSION = "occlusion";
 
 // Door type tags
+const std::string DOOR_TYPE_YES = "yes";
 const std::string DOOR_TYPE_HINGED = "hinged";
 const std::string DOOR_TYPE_SLIDING = "sliding";
 
