@@ -55,7 +55,7 @@ std::string areaTypes::getName(AreaTypes type) {
 doorTypes::DoorTypes doorTypes::getType(std::string type) {
 	return type == DOOR_TYPE_HINGED ? doorTypes::HINGED :
 		   type == DOOR_TYPE_SLIDING ? doorTypes::SLIDING :
-		   type == DOOR_TYPE_YES ? doorTypes::YES :
+		   type == DOOR_TYPE_GENERIC ? doorTypes::GENERIC :
 		   doorTypes::NONE;
 }
 
