@@ -25,6 +25,7 @@ namespace kelojson {
 			NONE = 0,
 			HINGED,
 			SLIDING,
+			GENERIC,
 			COUNT
 		};
 

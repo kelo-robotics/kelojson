@@ -19,16 +19,22 @@ Map::~Map() {
 
 bool Map::loadFile(std::string filename) {
 	std::ifstream stream(filename.c_str());
-	if (stream.fail())
+	if (stream.fail()) {
+        std::cout << "[Kelojson Map] Failed to read file " << filename << std::endl;
 		return false;
+    }
 
 	std::stringstream ss;
 	ss << stream.rdbuf();
 	std::string loadedFileContents = ss.str();
-	return !loadedFileContents.empty() && loadFromString(loadedFileContents);
+	return loadFromString(loadedFileContents);
 }
 
 bool Map::loadFromString(std::string mapString) {
+    if ( mapString.empty() ) {
+        std::cout << "[Kelojson Map] mapString is empty" << std::endl;
+        return false;
+    }
 	bool success = clear();
 	try {
 		YAML::Node yaml = YAML::Load(mapString);

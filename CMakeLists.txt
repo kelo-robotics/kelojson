@@ -67,3 +67,10 @@ add_library(kelojson_loader
 target_link_libraries(kelojson_loader
     ${catkin_LIBRARIES}
 )
+
+# =====
+# TESTS
+# =====
+if (CATKIN_ENABLE_TESTING)
+    add_subdirectory(test)
+endif ()

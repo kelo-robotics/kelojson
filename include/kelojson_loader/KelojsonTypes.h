@@ -16,7 +16,7 @@ const std::string AREAS_LAYER = "areas";
 const std::string SUBAREAS_LAYER = "subareas";
 const std::string ZONES_LAYER = "zones";
 const std::string TOPOLOGY_LAYER = "topology";
-const std::string OCCUPANCY_GRID_LAYER = "occupancy-grid";
+const std::string OCCUPANCY_GRID_LAYER = "occupancy_grid";
 
 // Area type tags
 const std::string AREA_TYPE_ROOM = "room";
@@ -31,20 +31,21 @@ const std::string ZONE_TYPE_FORBIDDEN = "forbidden";
 const std::string ZONE_TYPE_SLOWDOWN = "slowdown";
 const std::string ZONE_TYPE_RAMP = "ramp";
 const std::string ZONE_TYPE_LOAD_PARKING = "load_parking";
-const std::string ZONE_TYPE_CHARGING_STATION = "charging-station";
-const std::string ZONE_TYPE_WAITING_LOCATION = "waiting-location";
+const std::string ZONE_TYPE_CHARGING_STATION = "charging_station";
+const std::string ZONE_TYPE_WAITING_LOCATION = "waiting_location";
 const std::string ZONE_TYPE_OCCLUSION = "occlusion";
 
 // Door type tags
+const std::string DOOR_TYPE_GENERIC = "yes";
 const std::string DOOR_TYPE_HINGED = "hinged";
 const std::string DOOR_TYPE_SLIDING = "sliding";
 
 // Relation type tags
 const std::string RELATION_TYPE_ASSOCIATION = "association";
 const std::string RELATION_TYPE_TRANSITION = "transition";
-const std::string RELATION_TYPE_RAMP_EDGES = "ramp-edges";
-const std::string RELATION_TYPE_LOAD_PARKING_OPENINGS = "load-parking-openings";
-const std::string RELATION_TYPE_LOAD_PARKING_GROUP = "load-parking-group";
+const std::string RELATION_TYPE_RAMP_EDGES = "ramp_edges";
+const std::string RELATION_TYPE_LOAD_PARKING_OPENINGS = "load_parking_openings";
+const std::string RELATION_TYPE_LOAD_PARKING_GROUP = "load_parking_group";
 const std::string RELATION_TYPE_OCCLUSION_REGION = "occlusion_region";
 
 	namespace osm {
