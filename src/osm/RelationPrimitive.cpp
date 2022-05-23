@@ -70,7 +70,7 @@ const std::vector<RelationPrimitive::Member>& RelationPrimitive::getMembers() co
 void RelationPrimitive::write(std::ostream& out) const
 {
     writeGeneric(out);
-    out << "members: [";
+    out << "members: [" << std::endl;
     for ( size_t i = 0; i < members_.size(); i++ )
     {
         out << "    ";
