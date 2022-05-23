@@ -32,18 +32,9 @@ class Map
 
         osm::Primitive::Store osm_primitive_store_;
 
-        // OSM parsing methods 
         bool parseAllPrimitives(const YAML::Node& map_yaml);
 
-        static osm::PrimitiveType inferPrimitiveType(const YAML::Node& feature);
-
-        // bool isOsmGeometry(const YAML::Node& feature) const;
-        // bool isOsmRelation(const YAML::Node& feature) const;
-        // bool isOsmNode(const YAML::Node& feature) const;
-        // bool isOsmWay(const YAML::Node& feature) const;
-
         bool initialiseAllLayers();
-
 
 };
 

@@ -5,8 +5,6 @@ add_compile_options(
     -std=c++11
     -Wall
     -Wextra
-    -Wno-unused-variable
-    -Wno-deprecated-copy
 )
 
 find_package(catkin REQUIRED COMPONENTS
@@ -55,18 +53,33 @@ include_directories(
 )
 
 add_library(kelojson_loader
-    src/KelojsonAreasLayer.cpp
-    src/KelojsonLayer.cpp
-    src/KelojsonMap.cpp
-    src/KelojsonTypes.cpp
-    src/KelojsonTopologyLayer.cpp
-    src/KelojsonZonesLayer.cpp
-    src/OsmPrimitives.cpp
+    # osm
+    src/osm/Primitive.cpp
+    src/osm/NodePrimitive.cpp
+    src/osm/WayPrimitive.cpp
+    src/osm/RelationPrimitive.cpp
+    src/osm/PrimitiveFactory.cpp
+
+    src/Map.cpp
 )
 
 target_link_libraries(kelojson_loader
     ${catkin_LIBRARIES}
 )
+
+# add_library(kelojson_loader
+#     src/KelojsonAreasLayer.cpp
+#     src/KelojsonLayer.cpp
+#     src/KelojsonMap.cpp
+#     src/KelojsonTypes.cpp
+#     src/KelojsonTopologyLayer.cpp
+#     src/KelojsonZonesLayer.cpp
+#     src/OsmPrimitives.cpp
+# )
+
+# target_link_libraries(kelojson_loader
+#     ${catkin_LIBRARIES}
+# )
 
 # =====
 # TESTS
@@ -74,3 +87,10 @@ target_link_libraries(kelojson_loader
 if (CATKIN_ENABLE_TESTING)
     add_subdirectory(test)
 endif ()
+
+# =======
+# INSTALL
+# =======
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
