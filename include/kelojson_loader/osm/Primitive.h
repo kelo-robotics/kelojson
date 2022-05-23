@@ -32,7 +32,7 @@ class Primitive
 
         virtual ~Primitive() = default;
 
-        bool initialise(const YAML::Node& feature);
+        virtual bool initialise(const YAML::Node& feature);
 
         template <typename T>
         bool readTag(const std::string& key, T& value) const
