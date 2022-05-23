@@ -8,13 +8,6 @@ namespace kelo {
 namespace kelojson {
 namespace osm {
 
-Primitive::Primitive(const Primitive& primitive)
-{
-    type_ = primitive.type_;
-    id_ = primitive.id_;
-    tags_ = primitive.tags_;
-}
-
 bool Primitive::initialise(const YAML::Node& feature)
 {
     return Parser::read<int>(feature, "id", id_) && parseTags(feature);
@@ -41,7 +34,12 @@ int Primitive::getId() const
     return id_;
 }
 
-PrimitiveType Primitive::getType() const
+PrimitiveType Primitive::getPrimitiveType() const
+{
+    return primitive_type_;
+}
+
+const std::string& Primitive::getType() const
 {
     return type_;
 }
@@ -53,8 +51,9 @@ const Tags& Primitive::getTags() const
 
 void Primitive::writeGeneric(std::ostream& out) const
 {
-    out << "<Primitive type: " << asString(getType())
-        << ", id: " << getId() << ", ";
+    out << "<Primitive primitive_type: " << asString(getPrimitiveType())
+        << ", id: " << getId() << ", "
+        << ", type: " << getType() << ", ";
 
     const Tags& tags = getTags();
     out << "tags: [";

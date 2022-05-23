@@ -28,11 +28,13 @@ class RelationPrimitive : public Primitive
         RelationPrimitive():
             Primitive(PrimitiveType::RELATION) {}
 
+        RelationPrimitive(const RelationPrimitive& relation):
+            Primitive(relation),
+            members_(relation.members_) {}
+
         virtual ~RelationPrimitive () = default;
 
         bool initialise(const YAML::Node& feature);
-
-        const std::string& getRelationType() const;
 
         const std::vector<Member>& getMembers() const;
 
@@ -41,8 +43,6 @@ class RelationPrimitive : public Primitive
     private:
 
         std::vector<Member> members_;
-
-        std::string relation_type_;
 
 };
 

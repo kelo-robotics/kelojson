@@ -28,7 +28,11 @@ class Primitive
         using Store = std::map<PrimitiveType, Primitive::Map>;
 
 
-        Primitive(const Primitive& primitive);
+        Primitive(const Primitive& primitive):
+            type_(primitive.type_),
+            id_(primitive.id_),
+            primitive_type_(primitive.primitive_type_),
+            tags_(primitive.tags_) {}
 
         virtual ~Primitive() = default;
 
@@ -65,7 +69,9 @@ class Primitive
 
         int getId() const;
 
-        PrimitiveType getType() const;
+        PrimitiveType getPrimitiveType() const;
+
+        const std::string& getType() const;
 
         const Tags& getTags() const;
 
@@ -73,15 +79,17 @@ class Primitive
 
     protected:
 
+        std::string type_;
+
         Primitive(const PrimitiveType& type):
-            type_(type) {}
+            primitive_type_(type) {}
 
         void writeGeneric(std::ostream& out) const;
 
     private:
 
         int id_;
-        PrimitiveType type_;
+        PrimitiveType primitive_type_;
         Tags tags_;
 
         bool parseTags(const YAML::Node& feature);

@@ -12,7 +12,7 @@ bool WayPrimitive::initialise(const YAML::Node& feature)
 {
     return ( Primitive::initialise(feature) && 
              Parser::hasKey(feature, "geometry") &&
-             Parser::read<std::string>(feature["geometry"], "type", way_type_) &&
+             Parser::read<std::string>(feature["geometry"], "type", type_) &&
              Parser::hasKey(feature["geometry"], "nodeIds") &&
              feature["geometry"]["nodeIds"].IsSequence() &&
              feature["geometry"]["nodeIds"].size() > 0 &&
@@ -65,15 +65,10 @@ const std::vector<int>& WayPrimitive::getNodeIds() const
     return node_ids_;
 }
 
-const std::string& WayPrimitive::getWayType() const
-{
-    return way_type_;
-}
-
 void WayPrimitive::write(std::ostream& out) const
 {
     writeGeneric(out);
-    out << "way_type: " << way_type_ << ", node_ids: [";
+    out << "node_ids: [";
     for ( size_t i = 0; i < node_ids_.size(); i++ )
     {
         out << node_ids_[i] << ", ";

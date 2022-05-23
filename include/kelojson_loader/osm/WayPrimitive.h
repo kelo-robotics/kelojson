@@ -11,13 +11,16 @@ class WayPrimitive : public Primitive
 {
     public:
 
+        using Ptr = std::shared_ptr<WayPrimitive>;
+
+        using ConstPtr = std::shared_ptr<const WayPrimitive>;
+
         WayPrimitive():
             Primitive(PrimitiveType::WAY) {}
 
         WayPrimitive(const WayPrimitive& way):
             Primitive(way),
-            node_ids_(way.node_ids_),
-            way_type_(way.way_type_) {}
+            node_ids_(way.node_ids_) {}
 
         virtual ~WayPrimitive () = default;
 
@@ -29,14 +32,11 @@ class WayPrimitive : public Primitive
 
         const std::vector<int>& getNodeIds() const;
 
-        const std::string& getWayType() const;
-
         void write(std::ostream& out) const;
 
     private:
 
         std::vector<int> node_ids_;
-        std::string way_type_;
 
 };
 

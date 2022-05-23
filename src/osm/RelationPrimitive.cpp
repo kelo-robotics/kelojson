@@ -12,7 +12,7 @@ bool RelationPrimitive::initialise(const YAML::Node& feature)
 {
     if ( !Primitive::initialise(feature) ||
          !Parser::hasKey(feature, "properties") ||
-         !Parser::read<std::string>(feature["properties"], "type", relation_type_ ) ||
+         !Parser::read<std::string>(feature["properties"], "type", type_ ) ||
          !Parser::hasKey(feature, "relation") ||
          !Parser::hasKey(feature["relation"], "members") ||
          !feature["relation"]["members"].IsSequence() )
@@ -62,11 +62,6 @@ void RelationPrimitive::Member::write(std::ostream& out) const
         << ">";
 }
 
-const std::string& RelationPrimitive::getRelationType() const
-{
-    return relation_type_;
-}
-
 const std::vector<RelationPrimitive::Member>& RelationPrimitive::getMembers() const
 {
     return members_;
@@ -75,7 +70,7 @@ const std::vector<RelationPrimitive::Member>& RelationPrimitive::getMembers() co
 void RelationPrimitive::write(std::ostream& out) const
 {
     writeGeneric(out);
-    out << "relation_type: " << relation_type_ << ", members: [";
+    out << "members: [";
     for ( size_t i = 0; i < members_.size(); i++ )
     {
         out << "    ";
