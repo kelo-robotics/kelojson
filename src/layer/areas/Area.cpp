@@ -69,12 +69,19 @@ bool Area::initialiseTransitions(const osm::Primitive::Store& store)
 
         int adj_area_id = ( area_member_1.id == id_ ) ? area_member_2.id : area_member_1.id;
         std::string door_type_str = relation->getTag<std::string>("door", "");
+        if ( door_type_str == "yes")
+        {
+            door_type_str = "generic";
+        }
+        std::transform(door_type_str.begin(), door_type_str.end(),
+                       door_type_str.begin(), ::toupper);
         std::string name = relation->getTag<std::string>("name", "");
 
-        Area::Transition transition;
-        transition.door_type = asDoorType(door_type_str);
-        transition.id = relation->getId();
-        transition.associated_area_ids = std::make_pair(area_member_1.id, area_member_2.id);
+        Area::Transition::Ptr transition = std::make_shared<Area::Transition>();
+        transition->door_type = asDoorType(door_type_str);
+        transition->id = relation->getId();
+        transition->associated_area_ids = std::make_pair(
+                area_member_1.id, area_member_2.id);
         // if ( name.empty() )
         // {
         //     std::stringstream ss;
@@ -83,16 +90,16 @@ bool Area::initialiseTransitions(const osm::Primitive::Store& store)
         //     ss << getArea(transition.associatedAreaIds.second)->name;
         //     name = ss.str();
         // }
-        transition.name = name;
+        transition->name = name;
         std::vector<int> transition_coordinate_node_ids;
         transition_coordinate_node_ids.reserve(members.size() - 2);
         for ( size_t i = 2; i < members.size(); i++ )
         {
             transition_coordinate_node_ids.push_back(members[i].id);
         }
-        transition.coordinates.vertices = osm::PrimitiveUtils::getPoints(
+        transition->coordinates.vertices = osm::PrimitiveUtils::getPoints(
                 store, transition_coordinate_node_ids);
-        if ( transition.coordinates.size() < 2 )
+        if ( transition->coordinates.size() < 2 )
         {
             std::cout << Print::Err << "[Area] Area id: " << id_
                       << " is associated with transition with < 2 vertices"
@@ -115,21 +122,26 @@ std::vector<int> Area::adjacentAreaIds() const
     return adj_area_ids;
 }
 
-std::vector<Area::Transition> Area::transitionsWithArea(int adjacent_area_id) const
+const std::map<int, Area::Transition::Vec>& Area::getAllTransitions() const
+{
+    return transitions_;
+}
+
+const Area::Transition::Vec Area::transitionsWithArea(int adjacent_area_id) const
 {
     if ( transitions_.find(adjacent_area_id) == transitions_.end() )
     {
-        return std::vector<Area::Transition>();
+        return Area::Transition::Vec();
     }
     return transitions_.at(adjacent_area_id);
 }
 
-std::map<int, std::vector<Area::Transition>> Area::allDoorTransitions() const
+const std::map<int, Area::Transition::Vec> Area::allDoorTransitions() const
 {
-    std::map<int, std::vector<Area::Transition>> door_transitions;
+    std::map<int, Area::Transition::Vec> door_transitions;
     for ( auto itr = transitions_.cbegin(); itr != transitions_.cend(); itr ++ )
     {
-        std::vector<Area::Transition> door_transitions_with_area =
+        const Area::Transition::Vec door_transitions_with_area =
             doorTransitionsWithArea(itr->first);
         if ( !door_transitions_with_area.empty() )
         {
@@ -139,14 +151,14 @@ std::map<int, std::vector<Area::Transition>> Area::allDoorTransitions() const
     return door_transitions;
 }
 
-std::vector<Area::Transition> Area::doorTransitionsWithArea(int adjacent_area_id) const
+const Area::Transition::Vec Area::doorTransitionsWithArea(int adjacent_area_id) const
 {
-    std::vector<Area::Transition> door_transitions;
+    Area::Transition::Vec door_transitions;
     if ( transitions_.find(adjacent_area_id) != transitions_.end() )
     {
-        for ( const Area::Transition& transition : transitions_.at(adjacent_area_id) )
+        for ( const Area::Transition::Ptr& transition : transitions_.at(adjacent_area_id) )
         {
-            if ( transition.isDoor() )
+            if ( transition->isDoor() )
             {
                 door_transitions.push_back(transition);
             }
@@ -218,9 +230,9 @@ std::ostream& operator << (std::ostream& out, const Area& area)
     for ( auto itr = area.transitions_.cbegin(); itr != area.transitions_.cend(); itr ++ )
     {
         transitions_stream << "  - " << itr->first << ":" << std::endl;
-        for ( const Area::Transition& transition : itr->second )
+        for ( const Area::Transition::Ptr& transition : itr->second )
         {
-            transitions_stream << "    - " << transition << std::endl;
+            transitions_stream << "    - " << *transition << std::endl;
         }
     }
     std::string transitions_string = transitions_stream.str();

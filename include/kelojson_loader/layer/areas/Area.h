@@ -25,8 +25,15 @@ class Area
 
         using ConstPtr = std::shared_ptr<const Area>;
 
+        using Map = std::map<int, Area::Ptr>;
+
         struct Transition
         {
+            using Ptr = std::shared_ptr<Transition>;
+            using ConstPtr = std::shared_ptr<const Transition>;
+            using Vec = std::vector<Transition::Ptr>;
+            using ConstVec = std::vector<Transition::ConstPtr>;
+
             geometry_common::Polyline2D coordinates;
             DoorType door_type;
             int id;
@@ -51,11 +58,13 @@ class Area
 
         std::vector<int> adjacentAreaIds() const;
 
-        std::vector<Transition> transitionsWithArea(int adjacent_area_id) const;
+        const std::map<int, Transition::Vec>& getAllTransitions() const;
 
-        std::map<int, std::vector<Transition>> allDoorTransitions() const;
+        const Transition::Vec transitionsWithArea(int adjacent_area_id) const;
 
-        std::vector<Transition> doorTransitionsWithArea(int adjacent_area_id) const;
+        const std::map<int, Transition::Vec> allDoorTransitions() const;
+
+        const Transition::Vec doorTransitionsWithArea(int adjacent_area_id) const;
 
         bool isInsideBoundingBox(const geometry_common::Point2D& point) const;
 
@@ -85,7 +94,7 @@ class Area
         geometry_common::Polygon2D polygon_;
         geometry_common::Point2D mean_pt_;
         geometry_common::Box bounding_box_;
-        std::map<int, std::vector<Transition>> transitions_;
+        std::map<int, Transition::Vec> transitions_;
 
         bool initialiseTransitions(const osm::Primitive::Store& store);
 
