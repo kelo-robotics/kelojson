@@ -4,15 +4,14 @@
 #include <iostream>
 #include <string>
 
-#include <yaml-cpp/yaml.h>
 #include <geometry_common/Point2D.h>
 #include <geometry_common/Polyline2D.h>
 #include <geometry_common/Polygon2D.h>
 #include <geometry_common/Box.h>
 
-#include <kelojson_loader/osm/WayPrimitive.h>
+#include <kelojson_loader/osm/Primitive.h>
 #include <kelojson_loader/layer/areas/AreaType.h>
-#include <kelojson_loader/layer/areas/DoorType.h>
+#include <kelojson_loader/layer/areas/Transition.h>
 
 namespace kelo {
 namespace kelojson {
@@ -27,44 +26,19 @@ class Area
 
         using Map = std::map<int, Area::Ptr>;
 
-        struct Transition
-        {
-            using Ptr = std::shared_ptr<Transition>;
-            using ConstPtr = std::shared_ptr<const Transition>;
-            using Vec = std::vector<Transition::Ptr>;
-            using ConstVec = std::vector<Transition::ConstPtr>;
-
-            geometry_common::Polyline2D coordinates;
-            DoorType door_type;
-            int id;
-            std::string name;
-            std::pair<int, int> associated_area_ids;
-
-            bool isDoor() const;
-
-            float width() const;
-
-            friend std::ostream& operator << (
-                    std::ostream& out,
-                    const Transition& transition);
-
-        };
-
         Area() = default;
 
         virtual ~Area() = default;
 
         bool initialise(int way_id, const osm::Primitive::Store& store);
 
-        std::vector<int> adjacentAreaIds() const;
+        void setTransitions(const Transition::ConstVec& transitions);
 
-        const std::map<int, Transition::Vec>& getAllTransitions() const;
+        const std::vector<int> getAdjacentAreaIds() const;
 
-        const Transition::Vec transitionsWithArea(int adjacent_area_id) const;
-
-        const std::map<int, Transition::Vec> allDoorTransitions() const;
-
-        const Transition::Vec doorTransitionsWithArea(int adjacent_area_id) const;
+        const Transition::ConstVec getTransitionsWith(
+                int adjacent_area_id,
+                bool only_door = false) const;
 
         bool isInsideBoundingBox(const geometry_common::Point2D& point) const;
 
@@ -84,6 +58,8 @@ class Area
 
         const geometry_common::Box getBoundingBox() const;
 
+        const Transition::ConstVec& getTransitions() const;
+
         friend std::ostream& operator << (std::ostream& out, const Area& area);
 
     private:
@@ -94,9 +70,7 @@ class Area
         geometry_common::Polygon2D polygon_;
         geometry_common::Point2D mean_pt_;
         geometry_common::Box bounding_box_;
-        std::map<int, Transition::Vec> transitions_;
-
-        bool initialiseTransitions(const osm::Primitive::Store& store);
+        Transition::ConstVec transitions_;
 
         static geometry_common::Box calcBoundingBox(
                 geometry_common::Polygon2D polygon);

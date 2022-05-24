@@ -59,6 +59,14 @@ add_library(kelojson_loader
     src/osm/WayPrimitive.cpp
     src/osm/RelationPrimitive.cpp
     src/osm/PrimitiveFactory.cpp
+    src/osm/PrimitiveUtils.cpp
+
+    # layer
+    src/layer/LayerFactory.cpp
+    src/layer/areas/AreasLayer.cpp
+    src/layer/areas/Area.cpp
+    src/layer/areas/Transition.cpp
+    src/layer/areas/AreaPlanner.cpp
 
     src/Map.cpp
 )
@@ -66,20 +74,6 @@ add_library(kelojson_loader
 target_link_libraries(kelojson_loader
     ${catkin_LIBRARIES}
 )
-
-# add_library(kelojson_loader
-#     src/KelojsonAreasLayer.cpp
-#     src/KelojsonLayer.cpp
-#     src/KelojsonMap.cpp
-#     src/KelojsonTypes.cpp
-#     src/KelojsonTopologyLayer.cpp
-#     src/KelojsonZonesLayer.cpp
-#     src/OsmPrimitives.cpp
-# )
-
-# target_link_libraries(kelojson_loader
-#     ${catkin_LIBRARIES}
-# )
 
 # =====
 # TESTS

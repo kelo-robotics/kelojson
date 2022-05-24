@@ -6,6 +6,8 @@
 #include <yaml-cpp/yaml.h>
 
 #include <kelojson_loader/osm/Primitive.h>
+#include <kelojson_loader/layer/Layer.h>
+#include <kelojson_loader/layer/areas/AreasLayer.h>
 
 namespace kelo {
 namespace kelojson {
@@ -28,9 +30,13 @@ class Map
 
         bool clear();
 
+        AreasLayer::ConstPtr getAreasLayer() const;
+
     protected:
 
         osm::Primitive::Store osm_primitive_store_;
+
+        Layer::Map layers_;
 
         bool parseAllPrimitives(const YAML::Node& map_yaml);
 

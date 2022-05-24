@@ -26,7 +26,11 @@ bool Area::initialise(int way_id, const osm::Primitive::Store& store)
     std::transform(area_type_str.begin(), area_type_str.end(),
                    area_type_str.begin(), ::toupper);
     type_ = asAreaType(area_type_str);
-    name_ = way->getTag<std::string>("name", "");
+
+    if ( !way->readTag<std::string>("name", name_) )
+    {
+        name_ = "Area_" + std::to_string(id_);
+    }
 
     polygon_.vertices = osm::PrimitiveUtils::getPoints(store, way->getNodeIds());
     if ( polygon_.size() < 4 ) // last pt is repeated and triangle is smallest polygon
@@ -40,131 +44,55 @@ bool Area::initialise(int way_id, const osm::Primitive::Store& store)
     mean_pt_ = GCUtils::calcMeanPoint(polygon_.vertices);
     bounding_box_ = Area::calcBoundingBox(polygon_);
 
-    return initialiseTransitions(store);
-}
-
-bool Area::initialiseTransitions(const osm::Primitive::Store& store)
-{
-    std::vector<int> area_transition_ids = osm::PrimitiveUtils::filter(
-            store.at(osm::PrimitiveType::RELATION),
-            osm::Tags{{"layer", "areas"}},
-            "transition");
-    for ( int relation_id : area_transition_ids )
-    {
-        const osm::RelationPrimitive::Ptr relation = osm::PrimitiveUtils::getRelation(
-                store, relation_id);
-        const std::vector<osm::RelationPrimitive::Member>& members = relation->getMembers();
-
-        if ( members.size() < 4 ) // transition must have atleast two areas and two nodes as members
-        {
-            continue;
-        }
-
-        const osm::RelationPrimitive::Member& area_member_1 = members[0];
-        const osm::RelationPrimitive::Member& area_member_2 = members[1];
-        if ( area_member_1.id != id_ && area_member_2.id != id_ )
-        {
-            continue;
-        }
-
-        int adj_area_id = ( area_member_1.id == id_ ) ? area_member_2.id : area_member_1.id;
-        std::string door_type_str = relation->getTag<std::string>("door", "");
-        if ( door_type_str == "yes")
-        {
-            door_type_str = "generic";
-        }
-        std::transform(door_type_str.begin(), door_type_str.end(),
-                       door_type_str.begin(), ::toupper);
-        std::string name = relation->getTag<std::string>("name", "");
-
-        Area::Transition::Ptr transition = std::make_shared<Area::Transition>();
-        transition->door_type = asDoorType(door_type_str);
-        transition->id = relation->getId();
-        transition->associated_area_ids = std::make_pair(
-                area_member_1.id, area_member_2.id);
-        // if ( name.empty() )
-        // {
-        //     std::stringstream ss;
-        //     ss << (transition.doorType == doorTypes::NONE ? "AreaTransition-" : "Door-");
-        //     ss << getArea(transition.associatedAreaIds.first)->name << "-";
-        //     ss << getArea(transition.associatedAreaIds.second)->name;
-        //     name = ss.str();
-        // }
-        transition->name = name;
-        std::vector<int> transition_coordinate_node_ids;
-        transition_coordinate_node_ids.reserve(members.size() - 2);
-        for ( size_t i = 2; i < members.size(); i++ )
-        {
-            transition_coordinate_node_ids.push_back(members[i].id);
-        }
-        transition->coordinates.vertices = osm::PrimitiveUtils::getPoints(
-                store, transition_coordinate_node_ids);
-        if ( transition->coordinates.size() < 2 )
-        {
-            std::cout << Print::Err << "[Area] Area id: " << id_
-                      << " is associated with transition with < 2 vertices"
-                      << Print::End << std::endl;
-            return false;
-        }
-        transitions_[adj_area_id].push_back(transition);
-    }
     return true;
 }
 
-std::vector<int> Area::adjacentAreaIds() const
+void Area::setTransitions(const Transition::ConstVec& transitions)
 {
-    std::vector<int> adj_area_ids;
-    adj_area_ids.reserve(transitions_.size());
-    for ( auto itr = transitions_.cbegin(); itr != transitions_.cend(); itr ++ )
-    {
-        adj_area_ids.push_back(itr->first);
-    }
-    return adj_area_ids;
+    transitions_ = transitions;
 }
 
-const std::map<int, Area::Transition::Vec>& Area::getAllTransitions() const
+const std::vector<int> Area::getAdjacentAreaIds() const
 {
-    return transitions_;
-}
-
-const Area::Transition::Vec Area::transitionsWithArea(int adjacent_area_id) const
-{
-    if ( transitions_.find(adjacent_area_id) == transitions_.end() )
+    std::set<int> adjacent_area_ids;
+    for ( const Transition::ConstPtr& transition : transitions_ )
     {
-        return Area::Transition::Vec();
-    }
-    return transitions_.at(adjacent_area_id);
-}
-
-const std::map<int, Area::Transition::Vec> Area::allDoorTransitions() const
-{
-    std::map<int, Area::Transition::Vec> door_transitions;
-    for ( auto itr = transitions_.cbegin(); itr != transitions_.cend(); itr ++ )
-    {
-        const Area::Transition::Vec door_transitions_with_area =
-            doorTransitionsWithArea(itr->first);
-        if ( !door_transitions_with_area.empty() )
+        const std::pair<Area::ConstPtr, Area::ConstPtr>& associated_areas =
+            transition->getAssociatedAreas();
+        if ( associated_areas.first->getId() == id_ )
         {
-            door_transitions[itr->first] = door_transitions_with_area;
+            adjacent_area_ids.insert(associated_areas.second->getId());
+        }
+        else if ( associated_areas.second->getId() == id_ )
+        {
+            adjacent_area_ids.insert(associated_areas.first->getId());
         }
     }
-    return door_transitions;
+    std::vector<int> adjacent_area_ids_vec(adjacent_area_ids.begin(), adjacent_area_ids.end());
+    return adjacent_area_ids_vec;
 }
 
-const Area::Transition::Vec Area::doorTransitionsWithArea(int adjacent_area_id) const
+const Transition::ConstVec Area::getTransitionsWith(
+        int adjacent_area_id,
+        bool only_door) const
 {
-    Area::Transition::Vec door_transitions;
-    if ( transitions_.find(adjacent_area_id) != transitions_.end() )
+    Transition::ConstVec transitions_with_area;
+    for ( const Transition::ConstPtr& transition : transitions_ )
     {
-        for ( const Area::Transition::Ptr& transition : transitions_.at(adjacent_area_id) )
+        const std::pair<Area::ConstPtr, Area::ConstPtr>& associated_areas =
+            transition->getAssociatedAreas();
+        if ( (associated_areas.first->getId() == id_ &&
+              associated_areas.second->getId() == adjacent_area_id) ||
+             (associated_areas.first->getId() == adjacent_area_id &&
+              associated_areas.second->getId() == id_) )
         {
-            if ( transition->isDoor() )
+            if ( (only_door && transition->isDoor()) || !only_door )
             {
-                door_transitions.push_back(transition);
+                transitions_with_area.push_back(transition);
             }
         }
     }
-    return door_transitions;
+    return transitions_with_area;
 }
 
 bool Area::isInsideBoundingBox(const Point2D& point) const
@@ -216,6 +144,11 @@ const geometry_common::Box Area::getBoundingBox() const
     return bounding_box_;
 }
 
+const Transition::ConstVec& Area::getTransitions() const
+{
+    return transitions_;
+}
+
 std::ostream& operator << (std::ostream& out, const Area& area)
 {
     out << "Area:" << std::endl
@@ -224,22 +157,6 @@ std::ostream& operator << (std::ostream& out, const Area& area)
         << "    name: " << area.name_ << std::endl
         << "    polygon: " << area.polygon_ << std::endl
         << "    bounding_box: " << area.bounding_box_ << std::endl;
-
-    std::ostringstream transitions_stream;
-    transitions_stream << "    transitions: [" << std::endl;
-    for ( auto itr = area.transitions_.cbegin(); itr != area.transitions_.cend(); itr ++ )
-    {
-        transitions_stream << "  - " << itr->first << ":" << std::endl;
-        for ( const Area::Transition::Ptr& transition : itr->second )
-        {
-            transitions_stream << "    - " << *transition << std::endl;
-        }
-    }
-    std::string transitions_string = transitions_stream.str();
-    transitions_string = std::regex_replace(
-            transitions_string, std::regex("\n"), "\n    ");
-    out << transitions_string << "]" << std::endl;
-
     return out;
 }
 
@@ -268,35 +185,6 @@ geometry_common::Box Area::calcBoundingBox(geometry_common::Polygon2D polygon)
         }
     }
     return box;
-}
-
-// bool Area::Transition::operator < (const Transition& other) const
-// {
-//     return false;
-// }
-
-bool Area::Transition::isDoor() const
-{
-    return ( door_type != DoorType::NONE );
-}
-
-float Area::Transition::width() const
-{
-    return ( coordinates.size() < 2 )
-           ? 0.0
-           : coordinates.vertices.front().distTo(coordinates.vertices.back());
-}
-
-std::ostream& operator << (std::ostream& out, const Area::Transition& transition)
-{
-    out << "Transition: " << std::endl
-        << "        coordinates: " << transition.coordinates << std::endl
-        << "        door_type: " << asString(transition.door_type) << std::endl
-        << "        id: " << transition.id << std::endl
-        << "        name: " << transition.name << std::endl
-        << "        associated_area_ids: " << transition.associated_area_ids.first
-        << " <--> " << transition.associated_area_ids.second;
-    return out;
 }
 
 } // namespace kelojson

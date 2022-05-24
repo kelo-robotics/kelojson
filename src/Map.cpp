@@ -3,6 +3,7 @@
 
 #include <kelojson_loader/Print.h>
 #include <kelojson_loader/osm/PrimitiveFactory.h>
+#include <kelojson_loader/layer/LayerFactory.h>
 #include <kelojson_loader/Map.h>
 
 using Parser = kelo::yaml_common::Parser2;
@@ -70,13 +71,52 @@ bool Map::parseAllPrimitives(const YAML::Node& map_yaml)
 
 bool Map::initialiseAllLayers()
 {
-    return false;
+    std::set<LayerType> layer_set;
+
+    /* find all types of layers */
+    std::vector<osm::PrimitiveType> primitive_types{
+        osm::PrimitiveType::NODE,
+        osm::PrimitiveType::WAY,
+        osm::PrimitiveType::RELATION
+    };
+    for ( const osm::PrimitiveType primitive_type : primitive_types )
+    {
+        const osm::Primitive::Map& primitives = osm_primitive_store_.at(primitive_type);
+        for ( osm::Primitive::Map::const_iterator itr = primitives.cbegin();
+              itr != primitives.cend();
+              itr ++ )
+        {
+            std::string layer_type_str = itr->second->getTag<std::string>("layer", "");
+            std::transform(layer_type_str.begin(), layer_type_str.end(),
+                           layer_type_str.begin(), ::toupper);
+            layer_set.insert(asLayerType(layer_type_str));
+        }
+    }
+
+    for ( const LayerType layer_type : layer_set )
+    {
+        Layer::Ptr layer = LayerFactory::createLayer(layer_type, osm_primitive_store_);
+        if ( layer == nullptr && layer_type != LayerType::UNDEFINED )
+        {
+            return false;
+        }
+        layers_[layer_type] = layer;
+    }
+
+    return true;
 }
 
 bool Map::clear()
 {
     // TODO:
     return true;
+}
+
+AreasLayer::ConstPtr Map::getAreasLayer() const
+{
+    return ( layers_.find(LayerType::AREAS) == layers_.end() )
+           ? nullptr
+           : std::static_pointer_cast<AreasLayer>(layers_.at(LayerType::AREAS));
 }
 
 } // namespace kelojson
