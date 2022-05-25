@@ -71,11 +71,57 @@
         },
         {
             "type": "Feature",
+            "id": -101967,
+            "properties": {
+                "characteristic": "ramp",
+                "layer": "zones",
+                "inclination": "0.1"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            2.12620227415,
+                            1.83677159792
+                        ],
+                        [
+                            3.11694574221,
+                            1.84790354779
+                        ],
+                        [
+                            3.12807769129,
+                            1.34696583808
+                        ],
+                        [
+                            2.12620227415,
+                            1.33583388875
+                        ],
+                        [
+                            2.12620227415,
+                            1.83677159792
+                        ]
+                    ]
+                ],
+                "nodeIds": [
+                    [
+                        -123263,
+                        -123264,
+                        -123265,
+                        -123266,
+                        -123263
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
             "id": -101965,
             "properties": {
                 "characteristic": "load_parking",
                 "layer": "zones",
-                "name": "room2_load_parking_1"
+                "name": "room2_load_parking_1",
+                "theta": "1.6"
             },
             "geometry": {
                 "type": "Polygon",
@@ -528,6 +574,83 @@
                         -104253,
                         -104248
                     ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99808,
+            "properties": {
+                "layer": "zones",
+                "type": "ramp_edges"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -101967,
+                        "type": "Way",
+                        "role": "ramp"
+                    },
+                    {
+                        "id": -123264,
+                        "type": "Node",
+                        "role": "bottom"
+                    },
+                    {
+                        "id": -123265,
+                        "type": "Node",
+                        "role": "bottom"
+                    },
+                    {
+                        "id": -123266,
+                        "type": "Node",
+                        "role": "top"
+                    },
+                    {
+                        "id": -123263,
+                        "type": "Node",
+                        "role": "top"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99800,
+            "properties": {
+                "layer": "zones",
+                "name": "room1_load_parking",
+                "type": "load_parking_group"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -101838,
+                        "type": "Way",
+                        "role": ""
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99792,
+            "properties": {
+                "layer": "zones",
+                "type": "association"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -101967,
+                        "type": "Way",
+                        "role": "parent"
+                    },
+                    {
+                        "id": -101789,
+                        "type": "Way",
+                        "role": "areas"
+                    }
                 ]
             }
         },
