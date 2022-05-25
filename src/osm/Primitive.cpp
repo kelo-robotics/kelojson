@@ -51,12 +51,12 @@ const Tags& Primitive::getTags() const
 
 void Primitive::writeGeneric(std::ostream& out) const
 {
-    out << "<Primitive primitive_type: " << asString(getPrimitiveType())
-        << ", id: " << getId() << ", "
-        << ", type: " << getType() << ", ";
+    out << "<Primitive " << asString(getPrimitiveType())
+        << ", id: " << getId()
+        << ", type: " << getType();
 
     const Tags& tags = getTags();
-    out << "tags: [";
+    out << ", tags: [";
     for ( Tags::const_iterator itr = tags.begin(); itr != tags.end(); itr ++ )
     {
         out << itr->first << ": " << itr->second << ", ";
