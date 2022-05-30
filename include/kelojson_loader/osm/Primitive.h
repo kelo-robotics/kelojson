@@ -5,8 +5,8 @@
 #include <string>
 
 #include <yaml-cpp/yaml.h>
-#include <boost/lexical_cast.hpp>
 
+#include <kelojson_loader/Print.h>
 #include <kelojson_loader/osm/PrimitiveType.h>
 
 namespace kelo {
@@ -46,13 +46,17 @@ class Primitive
                 return false;
             }
 
+            const std::string& key_value = tags_.at(key);
             try
             {
-                value = boost::lexical_cast<T>(tags_.at(key).c_str());
+                value = Primitive::convertStringTo<T>(key_value);
             }
-            catch( const boost::bad_lexical_cast& )
+            catch( const std::exception& ex )
             {
-                std::cout << "[Primitive] Failed to parse property value for " << key << std::endl;
+                std::cout << Print::Err << "[Primitive] "
+                          << "Failed to convert tag key: " << key << ", value: "
+                          << key_value << " to required type with exception "
+                          << ex.what() << Print::End << std::endl;
                 return false;
             }
             return true;
@@ -94,6 +98,9 @@ class Primitive
 
         bool parseTags(const YAML::Node& feature);
 
+        template <typename T>
+        static T convertStringTo(const std::string& value);
+
         Primitive() = delete;
 
 };
@@ -103,6 +110,21 @@ inline std::ostream& operator << (std::ostream& out, const Primitive& primitive)
     primitive.write(out);
     return out;
 };
+
+template <>
+std::string Primitive::convertStringTo<std::string>(const std::string& value);
+
+template <>
+int Primitive::convertStringTo<int>(const std::string& value);
+
+template <>
+size_t Primitive::convertStringTo<size_t>(const std::string& value);
+
+template <>
+float Primitive::convertStringTo<float>(const std::string& value);
+
+template <>
+bool Primitive::convertStringTo<bool>(const std::string& value);
 
 } // namespace osm
 } // namespace kelojson

@@ -68,6 +68,49 @@ void Primitive::writeGeneric(std::ostream& out) const
     out << "], ";
 }
 
+template <>
+std::string Primitive::convertStringTo<std::string>(const std::string& value)
+{
+    return value;
+}
+
+template <>
+int Primitive::convertStringTo<int>(const std::string& value)
+{
+    return std::stoi(value);
+}
+
+template <>
+size_t Primitive::convertStringTo<size_t>(const std::string& value)
+{
+    return std::stoul(value);
+}
+
+template <>
+float Primitive::convertStringTo<float>(const std::string& value)
+{
+    return std::stof(value);
+}
+
+template <>
+bool Primitive::convertStringTo<bool>(const std::string& value)
+{
+    if ( value == "yes" || value == "Yes" || value == "YES" ||
+         value == "1" ||
+         value == "true" || value == "True" || value == "TRUE" )
+    {
+        return true;
+    }
+    else if ( value == "no" || value == "No" || value == "NO" ||
+              value == "0" ||
+              value == "false" || value == "False" || value == "FALSE" )
+    {
+        return false;
+    }
+
+    throw std::invalid_argument("Could not convert to bool");
+}
+
 } // namespace osm
 } // namespace kelojson
 } // namespace kelo
