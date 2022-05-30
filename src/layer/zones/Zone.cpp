@@ -29,7 +29,7 @@ bool Zone::initialiseInterLayerAssociation(
         {
             std::cout << Print::Err << "[Zone] "
                       << "layers map does not contain "
-                      << asString(layer_type) << "layer."
+                      << asString(layer_type) << " layer."
                       << Print::End << std::endl;
             return false;
         }
@@ -50,7 +50,7 @@ bool Zone::initialiseInterLayerAssociation(
                     std::cout << Print::Warn << "[Zone] "
                               << "Association relation has child member of type "
                               << asString(child_member.type) << ", but only WAY "
-                              << "is supported."
+                              << "is supported." << std::endl << *relation
                               << Print::End << std::endl;
                     return false;
                 }
@@ -60,7 +60,7 @@ bool Zone::initialiseInterLayerAssociation(
                     std::cout << Print::Warn << "[Zone] "
                               << "Association relation has child member with id "
                               << child_member.id << ", but could not find area "
-                              << "with that id"
+                              << "with that id" << std::endl << *relation
                               << Print::End << std::endl;
                     return false;
                 }
@@ -70,7 +70,8 @@ bool Zone::initialiseInterLayerAssociation(
             default:
                 std::cout << Print::Warn << "[Zone] "
                           << "No implementation found to establish inter-layer "
-                          << "association from zones layer to " << asString(layer_type)
+                          << "association from ZONES layer to " << asString(layer_type)
+                          << " layer." << std::endl << *relation
                           << Print::End << std::endl;
                 break;
         }
