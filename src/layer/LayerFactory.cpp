@@ -2,6 +2,7 @@
 
 #include <kelojson_loader/layer/LayerFactory.h>
 #include <kelojson_loader/layer/areas/AreasLayer.h>
+#include <kelojson_loader/layer/zones/ZonesLayer.h>
 
 namespace kelo {
 namespace kelojson {
@@ -19,6 +20,11 @@ Layer::Ptr LayerFactory::createLayer(
             layer = std::make_shared<AreasLayer>();
             break;
         }
+        case LayerType::ZONES:
+        {
+            layer = std::make_shared<ZonesLayer>();
+            break;
+        }
         case LayerType::UNDEFINED:
         {
             return nullptr;
@@ -34,6 +40,9 @@ Layer::Ptr LayerFactory::createLayer(
 
     if ( !layer->initialise(store) )
     {
+        std::cout << Print::Err << "[LayerFactory] "
+                  << "Layer of type " << asString(layer_type) << " could not be initialised."
+                  << Print::End << std::endl;
         return nullptr;
     }
 

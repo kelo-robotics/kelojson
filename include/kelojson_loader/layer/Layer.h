@@ -24,6 +24,15 @@ class Layer
 
         virtual bool initialise(const osm::Primitive::Store& store) = 0;
 
+        virtual bool initialiseInterLayerAssociation(
+                const Layer::Map& layers,
+                const osm::Primitive::Store& store)
+        {
+            layers.size(); // to suppress unused variable warning
+            store.size(); // to suppress unused variable warning
+            return true;
+        }
+
         LayerType getType() const
         {
             return type_;

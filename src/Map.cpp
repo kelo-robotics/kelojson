@@ -100,6 +100,18 @@ bool Map::initialiseAllLayers()
         layers_[layer_type] = layer;
     }
 
+    for ( auto itr = layers_.begin(); itr != layers_.end(); itr ++ )
+    {
+        if ( itr->first == LayerType::UNDEFINED )
+        {
+            continue;
+        }
+        if ( !itr->second->initialiseInterLayerAssociation(layers_, osm_primitive_store_) )
+        {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -114,6 +126,13 @@ AreasLayer::ConstPtr Map::getAreasLayer() const
     return ( layers_.find(LayerType::AREAS) == layers_.end() )
            ? nullptr
            : std::static_pointer_cast<AreasLayer>(layers_.at(LayerType::AREAS));
+}
+
+ZonesLayer::ConstPtr Map::getZonesLayer() const
+{
+    return ( layers_.find(LayerType::ZONES) == layers_.end() )
+           ? nullptr
+           : std::static_pointer_cast<ZonesLayer>(layers_.at(LayerType::ZONES));
 }
 
 } // namespace kelojson

@@ -8,6 +8,7 @@
 #include <kelojson_loader/osm/Primitive.h>
 #include <kelojson_loader/layer/Layer.h>
 #include <kelojson_loader/layer/areas/AreasLayer.h>
+#include <kelojson_loader/layer/zones/ZonesLayer.h>
 
 namespace kelo {
 namespace kelojson {
@@ -31,6 +32,8 @@ class Map
         bool clear();
 
         AreasLayer::ConstPtr getAreasLayer() const;
+
+        ZonesLayer::ConstPtr getZonesLayer() const;
 
     protected:
 
