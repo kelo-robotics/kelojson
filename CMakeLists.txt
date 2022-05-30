@@ -84,6 +84,10 @@ add_library(kelojson_loader
     src/layer/topology/TopologyLayer.cpp
     src/layer/topology/TopologyNode.cpp
 
+    # occupancy
+    src/layer/occupancy/OccupancyGridLayer.cpp
+    src/layer/occupancy/OccupancyGrid.cpp
+
     src/Map.cpp
 )
 

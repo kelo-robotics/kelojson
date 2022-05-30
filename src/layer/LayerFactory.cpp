@@ -4,6 +4,7 @@
 #include <kelojson_loader/layer/areas/AreasLayer.h>
 #include <kelojson_loader/layer/zones/ZonesLayer.h>
 #include <kelojson_loader/layer/topology/TopologyLayer.h>
+#include <kelojson_loader/layer/occupancy/OccupancyGridLayer.h>
 
 namespace kelo {
 namespace kelojson {
@@ -29,6 +30,11 @@ Layer::Ptr LayerFactory::createLayer(
         case LayerType::TOPOLOGY:
         {
             layer = std::make_shared<TopologyLayer>();
+            break;
+        }
+        case LayerType::OCCUPANCY_GRID:
+        {
+            layer = std::make_shared<OccupancyGridLayer>();
             break;
         }
         case LayerType::UNDEFINED:
