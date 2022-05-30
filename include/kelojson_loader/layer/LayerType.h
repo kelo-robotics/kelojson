@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 namespace kelo {
 namespace kelojson {
@@ -37,10 +38,13 @@ inline std::string asString(const LayerType& layer_type)
 
 inline LayerType asLayerType(const std::string& layer_type_string)
 {
+    std::string layer_type_str = layer_type_string;
+    std::transform(layer_type_str.begin(), layer_type_str.end(),
+                   layer_type_str.begin(), ::toupper);
     LayerType layer_type = LayerType::UNDEFINED;
     for ( size_t i = 0; i < layer_type_strings.size(); i++ )
     {
-        if ( layer_type_strings[i] == layer_type_string )
+        if ( layer_type_strings[i] == layer_type_str )
         {
             layer_type = static_cast<LayerType>(i);
             break;

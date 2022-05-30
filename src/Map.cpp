@@ -86,10 +86,7 @@ bool Map::initialiseAllLayers()
               itr != primitives.cend();
               itr ++ )
         {
-            std::string layer_type_str = itr->second->getTag<std::string>("layer", "");
-            std::transform(layer_type_str.begin(), layer_type_str.end(),
-                           layer_type_str.begin(), ::toupper);
-            layer_set.insert(asLayerType(layer_type_str));
+            layer_set.insert(asLayerType(itr->second->getTag<std::string>("layer", "")));
         }
     }
 
