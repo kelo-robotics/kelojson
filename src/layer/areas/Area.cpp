@@ -7,7 +7,7 @@
 #include <kelojson_loader/layer/areas/Area.h>
 
 using kelo::geometry_common::Point2D;
-using kelo::geometry_common::Box;
+using kelo::geometry_common::Box2D;
 using GCUtils = kelo::geometry_common::Utils;
 
 namespace kelo {
@@ -42,7 +42,7 @@ bool Area::initialise(int way_id, const osm::Primitive::Store& store)
     }
     polygon_.vertices.pop_back();
     mean_pt_ = GCUtils::calcMeanPoint(polygon_.vertices);
-    bounding_box_ = Area::calcBoundingBox(polygon_);
+    bounding_box_ = Box2D(polygon_);
 
     return true;
 }
@@ -139,7 +139,7 @@ const geometry_common::Point2D& Area::getMeanPoint() const
     return mean_pt_;
 }
 
-const geometry_common::Box Area::getBoundingBox() const
+const geometry_common::Box2D Area::getBoundingBox() const
 {
     return bounding_box_;
 }
@@ -160,32 +160,6 @@ std::ostream& operator << (std::ostream& out, const Area& area)
     return out;
 }
 
-geometry_common::Box Area::calcBoundingBox(geometry_common::Polygon2D polygon)
-{
-    Box box(std::numeric_limits<float>::max(), std::numeric_limits<float>::min(),
-            std::numeric_limits<float>::max(), std::numeric_limits<float>::min(),
-            0.0f, 0.0f);
-    for ( const Point2D pt : polygon.vertices )
-    {
-        if ( pt.x < box.min_x )
-        {
-            box.min_x = pt.x;
-        }
-        if ( pt.x > box.max_x )
-        {
-            box.max_x = pt.x;
-        }
-        if ( pt.y < box.min_y )
-        {
-            box.min_y = pt.y;
-        }
-        if ( pt.y > box.max_y )
-        {
-            box.max_y = pt.y;
-        }
-    }
-    return box;
-}
 
 } // namespace kelojson
 } // namespace kelo

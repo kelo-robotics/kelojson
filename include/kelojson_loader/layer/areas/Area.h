@@ -7,7 +7,7 @@
 #include <geometry_common/Point2D.h>
 #include <geometry_common/Polyline2D.h>
 #include <geometry_common/Polygon2D.h>
-#include <geometry_common/Box.h>
+#include <geometry_common/Box2D.h>
 
 #include <kelojson_loader/osm/Primitive.h>
 #include <kelojson_loader/layer/areas/AreaType.h>
@@ -56,7 +56,7 @@ class Area
 
         const geometry_common::Point2D& getMeanPoint() const;
 
-        const geometry_common::Box getBoundingBox() const;
+        const geometry_common::Box2D getBoundingBox() const;
 
         const Transition::ConstVec& getTransitions() const;
 
@@ -69,11 +69,8 @@ class Area
         std::string name_;
         geometry_common::Polygon2D polygon_;
         geometry_common::Point2D mean_pt_;
-        geometry_common::Box bounding_box_;
+        geometry_common::Box2D bounding_box_;
         Transition::ConstVec transitions_;
-
-        static geometry_common::Box calcBoundingBox(
-                geometry_common::Polygon2D polygon);
 
 };
 
