@@ -39,7 +39,6 @@ bool RelationPrimitive::Member::initialise(const YAML::Node& member_yaml)
     {
         return false;
     }
-    std::transform(type_str.begin(), type_str.end(), type_str.begin(), ::toupper);
     type = asPrimitiveType(type_str);
     if ( type == PrimitiveType::INVALID )
     {

@@ -30,10 +30,13 @@ inline std::string asString(const PrimitiveType& primitive_type)
 
 inline PrimitiveType asPrimitiveType(const std::string& primitive_type_string)
 {
+    std::string primitive_type_str = primitive_type_string;
+    std::transform(primitive_type_str.begin(), primitive_type_str.end(),
+                   primitive_type_str.begin(), ::toupper);
     PrimitiveType primitive_type = PrimitiveType::INVALID;
     for ( size_t i = 0; i < primitive_type_strings.size(); i++ )
     {
-        if ( primitive_type_strings[i] == primitive_type_string )
+        if ( primitive_type_strings[i] == primitive_type_str )
         {
             primitive_type = static_cast<PrimitiveType>(i);
             break;
