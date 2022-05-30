@@ -22,10 +22,7 @@ bool Area::initialise(int way_id, const osm::Primitive::Store& store)
     }
 
     id_ = way_id;
-    std::string area_type_str = way->getTag<std::string>("indoor", "unknown");
-    std::transform(area_type_str.begin(), area_type_str.end(),
-                   area_type_str.begin(), ::toupper);
-    type_ = asAreaType(area_type_str);
+    type_ = asAreaType(way->getTag<std::string>("indoor", "unknown"));
 
     if ( !way->readTag<std::string>("name", name_) )
     {
