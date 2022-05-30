@@ -24,6 +24,8 @@ class Area
 
         using ConstPtr = std::shared_ptr<const Area>;
 
+        using WeakPtr = std::weak_ptr<const Area>;
+
         using Map = std::map<int, Area::Ptr>;
 
         Area() = default;
@@ -58,7 +60,7 @@ class Area
 
         const geometry_common::Box2D getBoundingBox() const;
 
-        const Transition::ConstVec& getTransitions() const;
+        const Transition::ConstVec getTransitions() const;
 
         friend std::ostream& operator << (std::ostream& out, const Area& area);
 
@@ -70,7 +72,7 @@ class Area
         geometry_common::Polygon2D polygon_;
         geometry_common::Point2D mean_pt_;
         geometry_common::Box2D bounding_box_;
-        Transition::ConstVec transitions_;
+        Transition::WeakVec transitions_;
 
 };
 

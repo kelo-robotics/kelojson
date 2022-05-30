@@ -46,23 +46,31 @@ bool Area::initialise(int way_id, const osm::Primitive::Store& store)
 
 void Area::setTransitions(const Transition::ConstVec& transitions)
 {
-    transitions_ = transitions;
+    transitions_.clear();
+    transitions_.reserve(transitions.size());
+    for ( size_t i = 0; i < transitions.size(); i++ )
+    {
+        transitions_.push_back(transitions[i]);
+    }
 }
 
 const std::vector<int> Area::getAdjacentAreaIds() const
 {
     std::set<int> adjacent_area_ids;
-    for ( const Transition::ConstPtr& transition : transitions_ )
+    for ( const Transition::WeakPtr& transition_weak : transitions_ )
     {
-        const std::pair<Area::ConstPtr, Area::ConstPtr>& associated_areas =
-            transition->getAssociatedAreas();
-        if ( associated_areas.first->getId() == id_ )
+        if ( const Transition::ConstPtr transition = transition_weak.lock() )
         {
-            adjacent_area_ids.insert(associated_areas.second->getId());
-        }
-        else if ( associated_areas.second->getId() == id_ )
-        {
-            adjacent_area_ids.insert(associated_areas.first->getId());
+            const std::pair<Area::ConstPtr, Area::ConstPtr>& associated_areas =
+                transition->getAssociatedAreas();
+            if ( associated_areas.first->getId() == id_ )
+            {
+                adjacent_area_ids.insert(associated_areas.second->getId());
+            }
+            else if ( associated_areas.second->getId() == id_ )
+            {
+                adjacent_area_ids.insert(associated_areas.first->getId());
+            }
         }
     }
     std::vector<int> adjacent_area_ids_vec(adjacent_area_ids.begin(), adjacent_area_ids.end());
@@ -74,18 +82,21 @@ const Transition::ConstVec Area::getTransitionsWith(
         bool only_door) const
 {
     Transition::ConstVec transitions_with_area;
-    for ( const Transition::ConstPtr& transition : transitions_ )
+    for ( const Transition::WeakPtr& transition_weak : transitions_ )
     {
-        const std::pair<Area::ConstPtr, Area::ConstPtr>& associated_areas =
-            transition->getAssociatedAreas();
-        if ( (associated_areas.first->getId() == id_ &&
-              associated_areas.second->getId() == adjacent_area_id) ||
-             (associated_areas.first->getId() == adjacent_area_id &&
-              associated_areas.second->getId() == id_) )
+        if ( const Transition::ConstPtr transition = transition_weak.lock() )
         {
-            if ( (only_door && transition->isDoor()) || !only_door )
+            const std::pair<Area::ConstPtr, Area::ConstPtr>& associated_areas =
+                transition->getAssociatedAreas();
+            if ( (associated_areas.first->getId() == id_ &&
+                  associated_areas.second->getId() == adjacent_area_id) ||
+                 (associated_areas.first->getId() == adjacent_area_id &&
+                  associated_areas.second->getId() == id_) )
             {
-                transitions_with_area.push_back(transition);
+                if ( (only_door && transition->isDoor()) || !only_door )
+                {
+                    transitions_with_area.push_back(transition);
+                }
             }
         }
     }
@@ -141,9 +152,19 @@ const geometry_common::Box2D Area::getBoundingBox() const
     return bounding_box_;
 }
 
-const Transition::ConstVec& Area::getTransitions() const
+const Transition::ConstVec Area::getTransitions() const
 {
-    return transitions_;
+    Transition::ConstVec transitions;
+    transitions.reserve(transitions_.size());
+    for ( size_t i = 0; i < transitions_.size(); i++ )
+    {
+        Transition::ConstPtr transition = transitions_[i].lock();
+        if ( transition != nullptr )
+        {
+            transitions.push_back(transition);
+        }
+    }
+    return transitions;
 }
 
 std::ostream& operator << (std::ostream& out, const Area& area)

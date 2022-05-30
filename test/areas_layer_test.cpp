@@ -60,7 +60,7 @@ TEST_F(AreasLayerFixture, getTransition)
     Transition::ConstPtr transition = areas_layer->getTransition(-99754);
     EXPECT_NE(transition, nullptr);
     EXPECT_EQ(transition->getDoorType(), DoorType::GENERIC);
-    const std::pair<Area::ConstPtr, Area::ConstPtr>& associated_areas = 
+    const std::pair<Area::ConstPtr, Area::ConstPtr> associated_areas = 
         transition->getAssociatedAreas();
     EXPECT_EQ(associated_areas.first->getId(), -101805);
     EXPECT_EQ(associated_areas.second->getId(), -101782);

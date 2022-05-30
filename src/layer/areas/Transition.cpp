@@ -128,9 +128,10 @@ DoorType Transition::getDoorType() const
     return door_type_;
 }
 
-const std::pair<Area::ConstPtr, Area::ConstPtr>& Transition::getAssociatedAreas() const
+const std::pair<Area::ConstPtr, Area::ConstPtr> Transition::getAssociatedAreas() const
 {
-    return associated_areas_;
+    return std::make_pair<Area::ConstPtr, Area::ConstPtr>(
+            associated_areas_.first.lock(), associated_areas_.second.lock());
 }
 
 const geometry_common::Polyline2D& Transition::getPolyline() const
@@ -140,12 +141,14 @@ const geometry_common::Polyline2D& Transition::getPolyline() const
 
 std::ostream& operator << (std::ostream& out, const Transition& transition)
 {
+    const std::pair<Area::ConstPtr, Area::ConstPtr> associated_areas =
+        transition.getAssociatedAreas();
     out << "Transition: " << std::endl
         << "    id: " << transition.id_ << std::endl
         << "    name: " << transition.name_ << std::endl
         << "    door_type: " << asString(transition.door_type_) << std::endl
-        << "    associated_areas_: " << transition.associated_areas_.first->getName()
-        << " <--> " << transition.associated_areas_.second->getName() << std::endl
+        << "    associated_areas: " << associated_areas.first->getName()
+        << " <--> " << associated_areas.second->getName() << std::endl
         << "    polyline: " << transition.polyline_;
     return out;
 }

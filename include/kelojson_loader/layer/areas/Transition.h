@@ -16,6 +16,7 @@ namespace kelojson {
 // forward declaration
 class Area;
 using AreaConstPtr = std::shared_ptr<const Area>;
+using AreaWeakPtr = std::weak_ptr<const Area>;
 
 class Transition
 {
@@ -25,11 +26,15 @@ class Transition
 
         using ConstPtr = std::shared_ptr<const Transition>;
 
+        using WeakPtr = std::weak_ptr<const Transition>;
+
         using Map = std::map<int, Transition::Ptr>;
 
         using Vec = std::vector<Transition::Ptr>;
 
         using ConstVec = std::vector<Transition::ConstPtr>;
+
+        using WeakVec = std::vector<Transition::WeakPtr>;
 
         Transition() = default;
 
@@ -50,7 +55,7 @@ class Transition
 
         DoorType getDoorType() const;
 
-        const std::pair<AreaConstPtr, AreaConstPtr>& getAssociatedAreas() const;
+        const std::pair<AreaConstPtr, AreaConstPtr> getAssociatedAreas() const;
 
         const geometry_common::Polyline2D& getPolyline() const;
 
@@ -63,7 +68,7 @@ class Transition
         int id_;
         std::string name_;
         DoorType door_type_;
-        std::pair<AreaConstPtr, AreaConstPtr> associated_areas_;
+        std::pair<AreaWeakPtr, AreaWeakPtr> associated_areas_;
         geometry_common::Polyline2D polyline_;
 
 };
