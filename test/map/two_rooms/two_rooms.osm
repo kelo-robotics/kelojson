@@ -67,6 +67,9 @@
   <node id='-123264' action='modify' visible='true' lat='0.00001658506' lon='0.00002802055' />
   <node id='-123265' action='modify' visible='true' lat='0.00001210618' lon='0.00002805397' />
   <node id='-123266' action='modify' visible='true' lat='0.00001203931' lon='0.00001909273' />
+  <node id='-123271' action='modify' visible='true' lat='0.00000394569' lon='0.00004520742' />
+  <node id='-123272' action='modify' visible='true' lat='-0.00000200618' lon='0.00004527429' />
+  <node id='-123273' action='modify' visible='true' lat='-0.00000193782' lon='0.0000513584' />
   <way id='-101782' action='modify' visible='true'>
     <nd ref='-104248' />
     <nd ref='-104249' />
@@ -177,6 +180,13 @@
     <nd ref='-123263' />
     <tag k='characteristic' v='ramp' />
     <tag k='inclination' v='0.1' />
+    <tag k='layer' v='zones' />
+  </way>
+  <way id='-101969' action='modify' visible='true'>
+    <nd ref='-123271' />
+    <nd ref='-123272' />
+    <nd ref='-123273' />
+    <tag k='characteristic' v='occlusion' />
     <tag k='layer' v='zones' />
   </way>
   <relation id='-99752' action='modify' visible='true'>
@@ -296,7 +306,7 @@
     <tag k='type' v='association' />
   </relation>
   <relation id='-99800' action='modify' visible='true'>
-    <member type='way' ref='-101838' role='' />
+    <member type='way' ref='-101838' role='parking' />
     <tag k='layer' v='zones' />
     <tag k='name' v='room1_load_parking' />
     <tag k='type' v='load_parking_group' />

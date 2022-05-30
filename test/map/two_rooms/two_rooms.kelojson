@@ -71,11 +71,43 @@
         },
         {
             "type": "Feature",
+            "id": -101969,
+            "properties": {
+                "characteristic": "occlusion",
+                "layer": "zones"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        5.03164098386,
+                        0.43414601477
+                    ],
+                    [
+                        5.04277293294,
+                        -0.22263898069
+                    ],
+                    [
+                        5.72182182677,
+                        -0.21150703218
+                    ]
+                ],
+                "nodeIds": [
+                    [
+                        -123271,
+                        -123272,
+                        -123273
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
             "id": -101967,
             "properties": {
                 "characteristic": "ramp",
-                "layer": "zones",
-                "inclination": "0.1"
+                "inclination": "0.1",
+                "layer": "zones"
             },
             "geometry": {
                 "type": "Polygon",
@@ -627,7 +659,7 @@
                     {
                         "id": -101838,
                         "type": "Way",
-                        "role": ""
+                        "role": "parking"
                     }
                 ]
             }
