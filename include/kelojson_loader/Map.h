@@ -10,6 +10,7 @@
 #include <kelojson_loader/layer/areas/AreasLayer.h>
 #include <kelojson_loader/layer/zones/ZonesLayer.h>
 #include <kelojson_loader/layer/topology/TopologyLayer.h>
+#include <kelojson_loader/layer/occupancy/OccupancyGridLayer.h>
 
 namespace kelo {
 namespace kelojson {
@@ -38,15 +39,17 @@ class Map
 
         TopologyLayer::ConstPtr getTopologyLayer() const;
 
-    protected:
+        OccupancyGridLayer::ConstPtr getOccupancyGridLayer() const;
 
-        osm::Primitive::Store osm_primitive_store_;
+    protected:
 
         Layer::Map layers_;
 
-        bool parseAllPrimitives(const YAML::Node& map_yaml);
+        bool parseAllPrimitives(
+                const YAML::Node& map_yaml,
+                osm::Primitive::Store& osm_primitive_store);
 
-        bool initialiseAllLayers();
+        bool initialiseAllLayers(const osm::Primitive::Store& osm_primitive_store);
 
 };
 

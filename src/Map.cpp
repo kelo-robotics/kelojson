@@ -32,14 +32,19 @@ bool Map::initialiseFromYAML(const YAML::Node& map_yaml)
         return false;
     }
 
-    return ( parseAllPrimitives(map_yaml) && initialiseAllLayers() );
+
+    osm::Primitive::Store osm_primitive_store;
+    return ( parseAllPrimitives(map_yaml, osm_primitive_store) &&
+             initialiseAllLayers(osm_primitive_store) );
 }
 
-bool Map::parseAllPrimitives(const YAML::Node& map_yaml)
+bool Map::parseAllPrimitives(
+        const YAML::Node& map_yaml,
+        osm::Primitive::Store& osm_primitive_store)
 {
-    osm_primitive_store_.emplace(osm::PrimitiveType::NODE, osm::Primitive::Map());
-    osm_primitive_store_.emplace(osm::PrimitiveType::WAY, osm::Primitive::Map());
-    osm_primitive_store_.emplace(osm::PrimitiveType::RELATION, osm::Primitive::Map());
+    osm_primitive_store.emplace(osm::PrimitiveType::NODE, osm::Primitive::Map());
+    osm_primitive_store.emplace(osm::PrimitiveType::WAY, osm::Primitive::Map());
+    osm_primitive_store.emplace(osm::PrimitiveType::RELATION, osm::Primitive::Map());
 
     if ( !Parser::hasKey(map_yaml, "features") || !map_yaml["features"].IsSequence() )
     {
@@ -54,7 +59,7 @@ bool Map::parseAllPrimitives(const YAML::Node& map_yaml)
     for ( YAML::const_iterator feature = features.begin();
           feature != features.end(); feature++ )
     {
-        if ( !osm::PrimitiveFactory::createPrimitive(*feature, osm_primitive_store_) )
+        if ( !osm::PrimitiveFactory::createPrimitive(*feature, osm_primitive_store) )
         {
             success = false;
             break;
@@ -62,14 +67,14 @@ bool Map::parseAllPrimitives(const YAML::Node& map_yaml)
     }
 
     std::cout << Print::Success << "[Map] Parsed "
-              << osm_primitive_store_.at(osm::PrimitiveType::NODE).size() << " OSM Nodes, "
-              << osm_primitive_store_.at(osm::PrimitiveType::WAY).size() << " OSM Ways and "
-              << osm_primitive_store_.at(osm::PrimitiveType::RELATION).size() << " OSM Relations"
+              << osm_primitive_store.at(osm::PrimitiveType::NODE).size() << " OSM Nodes, "
+              << osm_primitive_store.at(osm::PrimitiveType::WAY).size() << " OSM Ways and "
+              << osm_primitive_store.at(osm::PrimitiveType::RELATION).size() << " OSM Relations"
               << Print::End << std::endl;
     return success;
 }
 
-bool Map::initialiseAllLayers()
+bool Map::initialiseAllLayers(const osm::Primitive::Store& osm_primitive_store)
 {
     std::set<LayerType> layer_set;
 
@@ -81,7 +86,7 @@ bool Map::initialiseAllLayers()
     };
     for ( const osm::PrimitiveType primitive_type : primitive_types )
     {
-        const osm::Primitive::Map& primitives = osm_primitive_store_.at(primitive_type);
+        const osm::Primitive::Map& primitives = osm_primitive_store.at(primitive_type);
         for ( osm::Primitive::Map::const_iterator itr = primitives.cbegin();
               itr != primitives.cend();
               itr ++ )
@@ -92,7 +97,7 @@ bool Map::initialiseAllLayers()
 
     for ( const LayerType layer_type : layer_set )
     {
-        Layer::Ptr layer = LayerFactory::createLayer(layer_type, osm_primitive_store_);
+        Layer::Ptr layer = LayerFactory::createLayer(layer_type, osm_primitive_store);
         if ( layer == nullptr && layer_type != LayerType::UNDEFINED )
         {
             return false;
@@ -106,7 +111,7 @@ bool Map::initialiseAllLayers()
         {
             continue;
         }
-        if ( !itr->second->initialiseInterLayerAssociation(layers_, osm_primitive_store_) )
+        if ( !itr->second->initialiseInterLayerAssociation(layers_, osm_primitive_store) )
         {
             return false;
         }
@@ -117,7 +122,7 @@ bool Map::initialiseAllLayers()
 
 bool Map::clear()
 {
-    // TODO:
+    layers_.clear();
     return true;
 }
 
@@ -140,6 +145,13 @@ TopologyLayer::ConstPtr Map::getTopologyLayer() const
     return ( layers_.find(LayerType::TOPOLOGY) == layers_.end() )
            ? nullptr
            : std::static_pointer_cast<TopologyLayer>(layers_.at(LayerType::TOPOLOGY));
+}
+
+OccupancyGridLayer::ConstPtr Map::getOccupancyGridLayer() const
+{
+    return ( layers_.find(LayerType::OCCUPANCY_GRID) == layers_.end() )
+           ? nullptr
+           : std::static_pointer_cast<OccupancyGridLayer>(layers_.at(LayerType::OCCUPANCY_GRID));
 }
 
 } // namespace kelojson
