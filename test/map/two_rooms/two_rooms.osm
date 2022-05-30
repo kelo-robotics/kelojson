@@ -137,7 +137,6 @@
     <nd ref='-116954' />
     <nd ref='-116955' />
     <nd ref='-116956' />
-    <nd ref='-116957' />
     <tag k='highway' v='robot_path' />
     <tag k='layer' v='topology' />
     <tag k='oneway' v='no' />
@@ -188,6 +187,13 @@
     <nd ref='-123273' />
     <tag k='characteristic' v='occlusion' />
     <tag k='layer' v='zones' />
+  </way>
+  <way id='-101973' action='modify' visible='true'>
+    <nd ref='-116956' />
+    <nd ref='-116957' />
+    <tag k='highway' v='robot_path' />
+    <tag k='layer' v='topology' />
+    <tag k='oneway' v='no' />
   </way>
   <relation id='-99752' action='modify' visible='true'>
     <member type='way' ref='-101813' role='areas' />
