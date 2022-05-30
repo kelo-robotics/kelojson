@@ -57,9 +57,13 @@ void Primitive::writeGeneric(std::ostream& out) const
 
     const Tags& tags = getTags();
     out << ", tags: [";
-    for ( Tags::const_iterator itr = tags.begin(); itr != tags.end(); itr ++ )
+    for ( Tags::const_iterator itr = tags.cbegin(); itr != tags.cend(); itr ++ )
     {
-        out << itr->first << ": " << itr->second << ", ";
+        if ( itr != tags.cbegin() )
+        {
+            out << ", ";
+        }
+        out << itr->first << ": " << itr->second;
     }
     out << "], ";
 }
