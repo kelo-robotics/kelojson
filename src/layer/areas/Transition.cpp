@@ -88,14 +88,7 @@ bool Transition::initialise(
     }
 
     /* door type */
-    std::string door_type_str = relation->getTag<std::string>("door", "");
-    if ( door_type_str == "yes")
-    {
-        door_type_str = "generic";
-    }
-    std::transform(door_type_str.begin(), door_type_str.end(),
-                   door_type_str.begin(), ::toupper);
-    door_type_ = asDoorType(door_type_str);
+    door_type_ = asDoorType(relation->getTag<std::string>("door", ""));
 
     /* name */
     if ( !relation->readTag<std::string>("name", name_) )

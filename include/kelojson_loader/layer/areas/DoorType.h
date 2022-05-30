@@ -1,6 +1,8 @@
 #ifndef KELO_KELOJSON_DOORTYPE_H
 #define KELO_KELOJSON_DOORTYPE_H
 
+#include <algorithm>
+
 namespace kelo {
 namespace kelojson {
 
@@ -29,10 +31,17 @@ inline std::string asString(const DoorType& door_type)
 
 inline DoorType asDoorType(const std::string& door_type_string)
 {
+    std::string door_type_str = door_type_string;
+    if ( door_type_str == "yes" || door_type_str == "YES" )
+    {
+        door_type_str = "generic";
+    }
+    std::transform(door_type_str.begin(), door_type_str.end(),
+                   door_type_str.begin(), ::toupper);
     DoorType door_type = DoorType::NONE;
     for ( size_t i = 0; i < door_type_strings.size(); i++ )
     {
-        if ( door_type_strings[i] == door_type_string )
+        if ( door_type_strings[i] == door_type_str )
         {
             door_type = static_cast<DoorType>(i);
             break;
