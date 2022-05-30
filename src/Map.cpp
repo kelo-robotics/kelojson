@@ -135,5 +135,12 @@ ZonesLayer::ConstPtr Map::getZonesLayer() const
            : std::static_pointer_cast<ZonesLayer>(layers_.at(LayerType::ZONES));
 }
 
+TopologyLayer::ConstPtr Map::getTopologyLayer() const
+{
+    return ( layers_.find(LayerType::TOPOLOGY) == layers_.end() )
+           ? nullptr
+           : std::static_pointer_cast<TopologyLayer>(layers_.at(LayerType::TOPOLOGY));
+}
+
 } // namespace kelojson
 } // namespace kelo

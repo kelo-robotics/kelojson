@@ -3,6 +3,7 @@
 #include <kelojson_loader/layer/LayerFactory.h>
 #include <kelojson_loader/layer/areas/AreasLayer.h>
 #include <kelojson_loader/layer/zones/ZonesLayer.h>
+#include <kelojson_loader/layer/topology/TopologyLayer.h>
 
 namespace kelo {
 namespace kelojson {
@@ -23,6 +24,11 @@ Layer::Ptr LayerFactory::createLayer(
         case LayerType::ZONES:
         {
             layer = std::make_shared<ZonesLayer>();
+            break;
+        }
+        case LayerType::TOPOLOGY:
+        {
+            layer = std::make_shared<TopologyLayer>();
             break;
         }
         case LayerType::UNDEFINED:

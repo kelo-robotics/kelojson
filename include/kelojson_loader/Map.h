@@ -9,6 +9,7 @@
 #include <kelojson_loader/layer/Layer.h>
 #include <kelojson_loader/layer/areas/AreasLayer.h>
 #include <kelojson_loader/layer/zones/ZonesLayer.h>
+#include <kelojson_loader/layer/topology/TopologyLayer.h>
 
 namespace kelo {
 namespace kelojson {
@@ -34,6 +35,8 @@ class Map
         AreasLayer::ConstPtr getAreasLayer() const;
 
         ZonesLayer::ConstPtr getZonesLayer() const;
+
+        TopologyLayer::ConstPtr getTopologyLayer() const;
 
     protected:
 

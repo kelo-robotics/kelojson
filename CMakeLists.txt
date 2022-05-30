@@ -63,10 +63,26 @@ add_library(kelojson_loader
 
     # layer
     src/layer/LayerFactory.cpp
+
+    # areas
     src/layer/areas/AreasLayer.cpp
     src/layer/areas/Area.cpp
     src/layer/areas/Transition.cpp
     src/layer/areas/AreaPlanner.cpp
+
+    # zones
+    src/layer/zones/ZonesLayer.cpp
+    src/layer/zones/Zone.cpp
+    src/layer/zones/NodeZone.cpp
+    src/layer/zones/PolygonZone.cpp
+    src/layer/zones/PolylineZone.cpp
+    src/layer/zones/RampZone.cpp
+    src/layer/zones/LoadParkingZone.cpp
+    src/layer/zones/OcclusionZone.cpp
+
+    # topology
+    src/layer/topology/TopologyLayer.cpp
+    src/layer/topology/TopologyNode.cpp
 
     src/Map.cpp
 )
