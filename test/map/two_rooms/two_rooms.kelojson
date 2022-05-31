@@ -71,6 +71,62 @@
         },
         {
             "type": "Feature",
+            "id": -102144,
+            "properties": {
+                "layer": "topology",
+                "highway": "robot_path",
+                "oneway": "yes"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        4.50843937713,
+                        3.59561955306
+                    ],
+                    [
+                        -0.54546550489,
+                        3.55109175715
+                    ]
+                ],
+                "nodeIds": [
+                    [
+                        -123381,
+                        -123382
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -102098,
+            "properties": {
+                "layer": "topology",
+                "oneway": "yes",
+                "highway": "robot_path"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        -0.03339584724,
+                        2.52695244058
+                    ],
+                    [
+                        4.49730742805,
+                        2.54921633931
+                    ]
+                ],
+                "nodeIds": [
+                    [
+                        -123369,
+                        -123370
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
             "id": -101973,
             "properties": {
                 "highway": "robot_path",
@@ -85,6 +141,10 @@
                         2.99449430193
                     ],
                     [
+                        4.49730742805,
+                        2.54921633931
+                    ],
+                    [
                         4.50843937713,
                         1.31356999144
                     ]
@@ -92,6 +152,7 @@
                 "nodeIds": [
                     [
                         -116956,
+                        -123370,
                         -116957
                     ]
                 ]
@@ -629,6 +690,94 @@
                         -104253,
                         -104248
                     ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99816,
+            "properties": {
+                "layer": "topology",
+                "type": "association"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -123381,
+                        "type": "Node",
+                        "role": "parent"
+                    },
+                    {
+                        "id": -101813,
+                        "type": "Way",
+                        "role": "areas"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99815,
+            "properties": {
+                "layer": "topology",
+                "type": "association"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -123382,
+                        "type": "Node",
+                        "role": "parent"
+                    },
+                    {
+                        "id": -101805,
+                        "type": "Way",
+                        "role": "areas"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99814,
+            "properties": {
+                "layer": "topology",
+                "type": "association"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -123369,
+                        "type": "Node",
+                        "role": "parent"
+                    },
+                    {
+                        "id": -101805,
+                        "type": "Way",
+                        "role": "areas"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99813,
+            "properties": {
+                "layer": "topology",
+                "type": "association"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -123370,
+                        "type": "Node",
+                        "role": "parent"
+                    },
+                    {
+                        "id": -101813,
+                        "type": "Way",
+                        "role": "areas"
+                    }
                 ]
             }
         },
