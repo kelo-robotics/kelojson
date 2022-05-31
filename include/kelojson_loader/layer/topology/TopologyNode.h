@@ -4,6 +4,7 @@
 #include <geometry_common/Point2D.h>
 
 #include <kelojson_loader/osm/Primitive.h>
+#include <kelojson_loader/osm/RelationPrimitive.h>
 #include <kelojson_loader/layer/LayerType.h>
 #include <kelojson_loader/layer/areas/Area.h>
 
@@ -38,7 +39,7 @@ class TopologyNode
                 const osm::RelationPrimitive::Ptr& relation,
                 const std::map<LayerType, std::shared_ptr<Layer>>& layers);
 
-        std::vector<int> getOverlappingAreaIds() const;
+        bool getOverlappingAreaId(int& area_id) const;
 
         bool isInArea(const Area& area) const;
 

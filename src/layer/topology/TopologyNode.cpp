@@ -90,17 +90,29 @@ bool TopologyNode::initialiseInterLayerAssociation(
                 break;
         }
     }
+
+    /* sanity check */
+    if ( inter_layer_associations_.find(LayerType::AREAS) != inter_layer_associations_.end() &&
+         inter_layer_associations_.at(LayerType::AREAS).size() != 1 )
+    {
+        std::cout << Print::Warn << "[TopologyNode] "
+                  << "TopologyNode with primitive_id: " << primitive_id_
+                  << " is part of multiple areas." << std::endl << *relation
+                  << Print::End << std::endl;
+        return false;
+    }
     return true;
 }
 
-std::vector<int> TopologyNode::getOverlappingAreaIds() const
+bool TopologyNode::getOverlappingAreaId(int& area_id) const
 {
     if ( inter_layer_associations_.find(LayerType::AREAS) != inter_layer_associations_.end() )
     {
         const std::set<int>& associations = inter_layer_associations_.at(LayerType::AREAS);
-        return std::vector<int>(associations.begin(), associations.end());
+        area_id = *(associations.begin());
+        return true;
     }
-    return std::vector<int>();
+    return false;
 }
 
 bool TopologyNode::isInArea(const Area& area) const
