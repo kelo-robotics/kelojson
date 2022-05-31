@@ -1,6 +1,11 @@
+#include <geometry_common/Utils.h>
 #include <kelojson_loader/Print.h>
 #include <kelojson_loader/osm/PrimitiveUtils.h>
 #include <kelojson_loader/layer/topology/TopologyLayer.h>
+
+using kelo::geometry_common::Point2D;
+using kelo::geometry_common::Pose2D;
+using GCUtils = kelo::geometry_common::Utils;
 
 namespace kelo {
 namespace kelojson {
@@ -173,6 +178,10 @@ bool TopologyLayer::initialiseInterLayerAssociation(
             return false;
         }
     }
+    if ( layers.find(LayerType::AREAS) != layers.end() )
+    {
+        areas_layer_ = std::static_pointer_cast<AreasLayer>(layers.at(LayerType::AREAS));
+    }
     return true;
 }
 
@@ -207,27 +216,92 @@ const TopologyNode::ConstVec TopologyLayer::getNodesInArea(
     return nodes_in_area;
 }
 
-const TopologyNode::ConstPtr TopologyLayer::getClosestNodeInArea(
-        const Area& area,
-        const geometry_common::Point2D& point) const
+const TopologyNode::ConstPtr TopologyLayer::getNearestNodeInArea(
+        const Point2D& point) const
 {
-    const TopologyNode::ConstVec nodes_in_area = getNodesInArea(area);
+    if ( areas_layer_ == nullptr )
+    {
+        return nullptr;
+    }
+    const Area::ConstPtr area = areas_layer_->getAreaContaining(point);
+    if ( area == nullptr )
+    {
+        return nullptr;
+    }
+    const TopologyNode::ConstVec nodes_in_area = getNodesInArea(*area);
     if ( nodes_in_area.empty() )
     {
         return nullptr;
     }
     float min_dist = std::numeric_limits<float>::max();
-    size_t closest_node_index = 0;
+    size_t nearest_node_index = 0;
     for ( size_t i = 0; i < nodes_in_area.size(); i++ )
     {
         float dist = nodes_in_area[i]->getPosition().distTo(point);
         if ( dist < min_dist )
         {
             min_dist = dist;
-            closest_node_index = i;
+            nearest_node_index = i;
         }
     }
-    return nodes_in_area[closest_node_index];
+    return nodes_in_area[nearest_node_index];
+}
+
+const TopologyNode::ConstPtr TopologyLayer::getNearestNodeInArea(
+        const Pose2D& pose,
+        bool only_oneway,
+        float theta_tolerance) const
+{
+    if ( areas_layer_ == nullptr )
+    {
+        return nullptr;
+    }
+    const Area::ConstPtr area = areas_layer_->getAreaContaining(pose.position());
+    if ( area == nullptr )
+    {
+        return nullptr;
+    }
+    const TopologyNode::ConstVec nodes_in_area = getNodesInArea(*area);
+    if ( nodes_in_area.empty() )
+    {
+        return nullptr;
+    }
+    float min_dist = std::numeric_limits<float>::max();
+    int nearest_node_index = -1;
+    for ( size_t i = 0; i < nodes_in_area.size(); i++ )
+    {
+        const TopologyNode::ConstPtr& node = nodes_in_area[i];
+        const TopologyNode::ConstVec adjacent_nodes = getAdjacentNodes(*node);
+        bool found = false;
+        for ( const TopologyNode::ConstPtr& adj_node : adjacent_nodes )
+        {
+            float theta = (adj_node->getPosition() - node->getPosition()).angle();
+            bool is_oneway = ( adjacency_matrix_.at(
+                                    adj_node->getInternalId()).at(
+                                        node->getInternalId()) == nullptr );
+            if ( std::fabs(GCUtils::calcShortestAngle(theta, pose.theta)) < theta_tolerance &&
+                 ((only_oneway && is_oneway) || !only_oneway) )
+            {
+                found = true;
+                break;
+            }
+        }
+        if ( !found )
+        {
+            continue;
+        }
+        float dist = pose.distTo(node->getPosition());
+        if ( dist < min_dist )
+        {
+            min_dist = dist;
+            nearest_node_index = i;
+        }
+    }
+    if ( nearest_node_index == -1 )
+    {
+        return nullptr;
+    }
+    return nodes_in_area[nearest_node_index];
 }
 
 const TopologyNode::ConstVec TopologyLayer::getAdjacentNodes(

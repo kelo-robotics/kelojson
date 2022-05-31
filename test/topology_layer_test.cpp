@@ -9,6 +9,7 @@
 
 using namespace kelo::kelojson;
 using kelo::geometry_common::Point2D;
+using kelo::geometry_common::Pose2D;
 
 class TopologyLayerFixture : public ::testing::Test
 {
@@ -47,12 +48,32 @@ TEST_F(TopologyLayerFixture, getNodesInArea)
     EXPECT_EQ(nodes.front()->getPrimitiveId(), -116953);
 }
 
-TEST_F(TopologyLayerFixture, getClosestNodeInArea)
+TEST_F(TopologyLayerFixture, getNearestNodeInAreaPoint)
 {
     Point2D pt(0, 0);
-    const TopologyNode::ConstPtr node = topology_layer->getClosestNodeInArea(*area, pt);
+    const TopologyNode::ConstPtr node = topology_layer->getNearestNodeInArea(pt);
     EXPECT_NE(node, nullptr);
     EXPECT_EQ(node->getPrimitiveId(), -116953);
+}
+
+TEST_F(TopologyLayerFixture, getNearestNodeInAreaPose)
+{
+    Pose2D pose(-0.75f, 3.0f, 0.0f);
+    const TopologyNode::ConstPtr node = topology_layer->getNearestNodeInArea(pose);
+    ASSERT_NE(node, nullptr);
+    EXPECT_EQ(node->getPrimitiveId(), -116954);
+
+    Pose2D pose_2(-0.75f, 3.0f, 3.0f);
+    const TopologyNode::ConstPtr node_2 = topology_layer->getNearestNodeInArea(pose_2);
+    ASSERT_EQ(node_2, nullptr);
+}
+
+TEST_F(TopologyLayerFixture, getNearestNodeInAreaPoseOneWay)
+{
+    Pose2D pose(-0.75f, 3.0f, 0.0f);
+    const TopologyNode::ConstPtr node = topology_layer->getNearestNodeInArea(pose, true);
+    ASSERT_NE(node, nullptr);
+    EXPECT_EQ(node->getPrimitiveId(), -123369);
 }
 
 TEST_F(TopologyLayerFixture, getNode)

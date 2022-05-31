@@ -2,6 +2,7 @@
 #define KELO_KELOJSON_TOPOLOGY_LAYER_H
 
 #include <kelojson_loader/layer/Layer.h>
+#include <kelojson_loader/layer/areas/AreasLayer.h>
 #include <kelojson_loader/layer/topology/TopologyNode.h>
 #include <kelojson_loader/layer/topology/TopologyEdge.h>
 
@@ -34,9 +35,13 @@ class TopologyLayer : public Layer
         const TopologyNode::ConstVec getNodesInArea(
                 const Area& area) const;
 
-        const TopologyNode::ConstPtr getClosestNodeInArea(
-                const Area& area,
+        const TopologyNode::ConstPtr getNearestNodeInArea(
                 const geometry_common::Point2D& point) const;
+
+        const TopologyNode::ConstPtr getNearestNodeInArea(
+                const geometry_common::Pose2D& pose,
+                bool only_oneway = false,
+                float theta_tolerance = M_PI/4) const;
 
         const TopologyNode::ConstVec getAdjacentNodes(const TopologyNode& node) const;
 
@@ -53,6 +58,7 @@ class TopologyLayer : public Layer
         TopologyNode::Vec nodes_;
         TopologyEdge::Matrix adjacency_matrix_;
         std::map<int, size_t> primitive_id_to_internal_id_;
+        AreasLayer::ConstPtr areas_layer_;
 
 };
 
