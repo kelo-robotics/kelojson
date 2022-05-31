@@ -4,6 +4,7 @@
 #include <kelojson_loader/layer/topology/TopologyLayer.h>
 
 using kelo::geometry_common::Point2D;
+using kelo::geometry_common::LineSegment2D;
 using kelo::geometry_common::Pose2D;
 using GCUtils = kelo::geometry_common::Utils;
 
@@ -13,6 +14,7 @@ namespace kelojson {
 bool TopologyLayer::initialise(const osm::Primitive::Store& store)
 {
     size_t internal_node_id_counter = 0;
+    size_t internal_edge_id_counter = 0;
 
     std::vector<int> topology_way_ids = osm::PrimitiveUtils::filter(
             store.at(osm::PrimitiveType::WAY),
@@ -81,11 +83,13 @@ bool TopologyLayer::initialise(const osm::Primitive::Store& store)
             if ( i + 1 < node_ids.size() )
             {
                 size_t next_id = primitive_id_to_internal_id_.at(node_ids[i+1]);
+                size_t internal_edge_id = internal_edge_id_counter++;
                 TopologyEdge::Ptr edge = std::make_shared<TopologyEdge>();
-                if ( !edge->initialise(way_id, store) )
+                if ( !edge->initialise(way, internal_edge_id, nodes_[curr_id], nodes_[next_id]) )
                 {
                     return false;
                 }
+                edges_.push_back(edge);
                 adjacency_matrix_[curr_id][next_id] = edge;
             }
 
@@ -98,7 +102,8 @@ bool TopologyLayer::initialise(const osm::Primitive::Store& store)
     }
 
     std::cout << Print::Success << "[TopologyLayer] "
-              << "Successfully initialised " << nodes_.size() << " nodes."
+              << "Successfully initialised " << nodes_.size() << " nodes and "
+              << edges_.size() << " edges."
               << Print::End << std::endl;
     return true;
 }
@@ -178,6 +183,18 @@ bool TopologyLayer::initialiseInterLayerAssociation(
             return false;
         }
     }
+
+    for ( TopologyEdge::Ptr& edge : edges_ )
+    {
+        if ( !edge->initialiseInterLayerAssociation(layers) )
+        {
+            std::cout << Print::Err << "[TopologyLayer] Could not initialise "
+                      << "inter-layer association for edge " << *edge
+                      << Print::End << std::endl;
+            return false;
+        }
+    }
+
     if ( layers.find(LayerType::AREAS) != layers.end() )
     {
         areas_layer_ = std::static_pointer_cast<AreasLayer>(layers.at(LayerType::AREAS));
@@ -247,63 +264,6 @@ const TopologyNode::ConstPtr TopologyLayer::getNearestNodeInArea(
     return nodes_in_area[nearest_node_index];
 }
 
-const TopologyNode::ConstPtr TopologyLayer::getNearestNodeInArea(
-        const Pose2D& pose,
-        bool only_oneway,
-        float theta_tolerance) const
-{
-    if ( areas_layer_ == nullptr )
-    {
-        return nullptr;
-    }
-    const Area::ConstPtr area = areas_layer_->getAreaContaining(pose.position());
-    if ( area == nullptr )
-    {
-        return nullptr;
-    }
-    const TopologyNode::ConstVec nodes_in_area = getNodesInArea(*area);
-    if ( nodes_in_area.empty() )
-    {
-        return nullptr;
-    }
-    float min_dist = std::numeric_limits<float>::max();
-    int nearest_node_index = -1;
-    for ( size_t i = 0; i < nodes_in_area.size(); i++ )
-    {
-        const TopologyNode::ConstPtr& node = nodes_in_area[i];
-        const TopologyNode::ConstVec adjacent_nodes = getAdjacentNodes(*node);
-        bool found = false;
-        for ( const TopologyNode::ConstPtr& adj_node : adjacent_nodes )
-        {
-            float theta = (adj_node->getPosition() - node->getPosition()).angle();
-            bool is_oneway = ( adjacency_matrix_.at(
-                                    adj_node->getInternalId()).at(
-                                        node->getInternalId()) == nullptr );
-            if ( std::fabs(GCUtils::calcShortestAngle(theta, pose.theta)) < theta_tolerance &&
-                 ((only_oneway && is_oneway) || !only_oneway) )
-            {
-                found = true;
-                break;
-            }
-        }
-        if ( !found )
-        {
-            continue;
-        }
-        float dist = pose.distTo(node->getPosition());
-        if ( dist < min_dist )
-        {
-            min_dist = dist;
-            nearest_node_index = i;
-        }
-    }
-    if ( nearest_node_index == -1 )
-    {
-        return nullptr;
-    }
-    return nodes_in_area[nearest_node_index];
-}
-
 const TopologyNode::ConstVec TopologyLayer::getAdjacentNodes(
         const TopologyNode& node) const
 {
@@ -336,6 +296,114 @@ const TopologyNode::ConstVec TopologyLayer::getAllNodes() const
     return nodes;
 }
 
+const TopologyEdge::ConstPtr TopologyLayer::getEdgeWithInternalId(
+        size_t internal_id) const
+{
+    return ( internal_id >= edges_.size() )
+           ? nullptr
+           : edges_[internal_id];
+}
+
+const TopologyEdge::ConstVec TopologyLayer::getEdgesInArea(const Area& area) const
+{
+    TopologyEdge::ConstVec edges_in_area;
+    for ( const TopologyEdge::Ptr& edge : edges_ )
+    {
+        if ( edge->isInArea(area) )
+        {
+            edges_in_area.push_back(edge);
+        }
+    }
+    return edges_in_area;
+}
+
+const TopologyEdge::ConstPtr TopologyLayer::getNearestEdgeInArea(
+        const geometry_common::Point2D& point) const
+{
+    if ( areas_layer_ == nullptr )
+    {
+        return nullptr;
+    }
+    const Area::ConstPtr area = areas_layer_->getAreaContaining(point);
+    if ( area == nullptr )
+    {
+        return nullptr;
+    }
+    const TopologyEdge::ConstVec edges_in_area = getEdgesInArea(*area);
+    if ( edges_in_area.empty() )
+    {
+        return nullptr;
+    }
+    float min_dist = std::numeric_limits<float>::max();
+    size_t nearest_edge_index = 0;
+    for ( size_t i = 0; i < edges_in_area.size(); i++ )
+    {
+        float dist = edges_in_area[i]->getLineSegment().minDistTo(point);
+        if ( dist < min_dist )
+        {
+            min_dist = dist;
+            nearest_edge_index = i;
+        }
+    }
+    return edges_in_area[nearest_edge_index];
+}
+
+const TopologyEdge::ConstPtr TopologyLayer::getNearestEdgeInArea(
+        const geometry_common::Pose2D& pose,
+        bool only_oneway,
+        float theta_tolerance) const
+{
+    if ( areas_layer_ == nullptr )
+    {
+        return nullptr;
+    }
+    const Area::ConstPtr area = areas_layer_->getAreaContaining(pose.position());
+    if ( area == nullptr )
+    {
+        return nullptr;
+    }
+    const TopologyEdge::ConstVec edges_in_area = getEdgesInArea(*area);
+    if ( edges_in_area.empty() )
+    {
+        return nullptr;
+    }
+    float min_dist = std::numeric_limits<float>::max();
+    int nearest_edge_index = -1;
+    for ( size_t i = 0; i < edges_in_area.size(); i++ )
+    {
+        const TopologyEdge::ConstPtr& edge = edges_in_area[i];
+        const LineSegment2D segment = edge->getLineSegment();
+        float theta = segment.angle();
+        bool is_oneway = edge->isOneWay();
+        if ( std::fabs(GCUtils::calcShortestAngle(theta, pose.theta)) < theta_tolerance &&
+             ((only_oneway && is_oneway) || !only_oneway) )
+        {
+            float dist = segment.minDistTo(pose.position());
+            if ( dist < min_dist )
+            {
+                min_dist = dist;
+                nearest_edge_index = i;
+            }
+        }
+    }
+    if ( nearest_edge_index == -1 )
+    {
+        return nullptr;
+    }
+    return edges_in_area[nearest_edge_index];
+}
+
+const TopologyEdge::ConstVec TopologyLayer::getAllEdges() const
+{
+    TopologyEdge::ConstVec edges;
+    edges.reserve(edges_.size());
+    for ( size_t i = 0; i < edges_.size(); i++ )
+    {
+        edges.push_back(edges_[i]);
+    }
+    return edges;
+}
+
 const TopologyEdge::Matrix& TopologyLayer::getAdjacencyMatrix() const
 {
     return adjacency_matrix_;
@@ -348,6 +416,12 @@ std::ostream& operator << (std::ostream& out, const TopologyLayer& layer)
     for ( size_t i = 0; i < layer.nodes_.size(); i++ )
     {
         out << "    " << *(layer.nodes_[i]) << std::endl;
+    }
+
+    out << "  Edges:" << std::endl;
+    for ( size_t i = 0; i < layer.edges_.size(); i++ )
+    {
+        out << "    " << *(layer.edges_[i]) << std::endl;
     }
 
     out << "  Adjacency matrix:" << std::endl;

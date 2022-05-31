@@ -28,24 +28,40 @@ class TopologyLayer : public Layer
                 const Layer::Map& layers,
                 const osm::Primitive::Store& store) override;
 
+        // ====================================================================
+        // Nodes
+        // ====================================================================
+
         const TopologyNode::ConstPtr getNodeWithInternalId(size_t internal_id) const;
 
         const TopologyNode::ConstPtr getNodeWithPrimitiveId(int primitive_id) const;
 
-        const TopologyNode::ConstVec getNodesInArea(
-                const Area& area) const;
+        const TopologyNode::ConstVec getNodesInArea(const Area& area) const;
 
         const TopologyNode::ConstPtr getNearestNodeInArea(
                 const geometry_common::Point2D& point) const;
 
-        const TopologyNode::ConstPtr getNearestNodeInArea(
+        const TopologyNode::ConstVec getAdjacentNodes(const TopologyNode& node) const;
+
+        const TopologyNode::ConstVec getAllNodes() const;
+
+        // ====================================================================
+        // Edges
+        // ====================================================================
+
+        const TopologyEdge::ConstPtr getEdgeWithInternalId(size_t internal_id) const;
+
+        const TopologyEdge::ConstVec getEdgesInArea(const Area& area) const;
+
+        const TopologyEdge::ConstPtr getNearestEdgeInArea(
+                const geometry_common::Point2D& point) const;
+
+        const TopologyEdge::ConstPtr getNearestEdgeInArea(
                 const geometry_common::Pose2D& pose,
                 bool only_oneway = false,
                 float theta_tolerance = M_PI/4) const;
 
-        const TopologyNode::ConstVec getAdjacentNodes(const TopologyNode& node) const;
-
-        const TopologyNode::ConstVec getAllNodes() const;
+        const TopologyEdge::ConstVec getAllEdges() const;
 
         const TopologyEdge::Matrix& getAdjacencyMatrix() const;
 
@@ -56,6 +72,7 @@ class TopologyLayer : public Layer
     private:
 
         TopologyNode::Vec nodes_;
+        TopologyEdge::Vec edges_;
         TopologyEdge::Matrix adjacency_matrix_;
         std::map<int, size_t> primitive_id_to_internal_id_;
         AreasLayer::ConstPtr areas_layer_;
