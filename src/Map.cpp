@@ -11,31 +11,25 @@ using Parser = kelo::yaml_common::Parser2;
 namespace kelo {
 namespace kelojson {
 
-bool Map::initialiseFromFile(const std::string& map_file)
+Map::ConstPtr Map::initialiseFromFile(const std::string& map_file)
 {
     YAML::Node map_yaml;
     if ( !Parser::loadFile(map_file, map_yaml) )
     {
-        return false;
+        return nullptr;
     }
 
-    return initialiseFromYAML(map_yaml);
+    return Map::initialiseFromYAML(map_yaml);
 }
 
-bool Map::initialiseFromYAML(const YAML::Node& map_yaml)
+Map::ConstPtr Map::initialiseFromYAML(const YAML::Node& map_yaml)
 {
-    if ( !clear() )
-    {
-        std::cout << Print::Err << "[Map] "
-                  << "Could not clear existing content"
-                  << Print::End << std::endl;
-        return false;
-    }
-
-
+    Map::Ptr kelojson_map = std::make_shared<Map>();
     osm::Primitive::Store osm_primitive_store;
-    return ( parseAllPrimitives(map_yaml, osm_primitive_store) &&
-             initialiseAllLayers(osm_primitive_store) );
+    return ( kelojson_map->parseAllPrimitives(map_yaml, osm_primitive_store) &&
+             kelojson_map->initialiseAllLayers(osm_primitive_store) )
+           ? kelojson_map
+           : nullptr;
 }
 
 bool Map::parseAllPrimitives(
@@ -117,12 +111,6 @@ bool Map::initialiseAllLayers(const osm::Primitive::Store& osm_primitive_store)
         }
     }
 
-    return true;
-}
-
-bool Map::clear()
-{
-    layers_.clear();
     return true;
 }
 

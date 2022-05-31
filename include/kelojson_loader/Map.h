@@ -27,11 +27,9 @@ class Map
 
         virtual ~Map() = default;
 
-        bool initialiseFromFile(const std::string& map_file);
+        static Map::ConstPtr initialiseFromFile(const std::string& map_file);
 
-        bool initialiseFromYAML(const YAML::Node& map_yaml);
-
-        bool clear();
+        static Map::ConstPtr initialiseFromYAML(const YAML::Node& map_yaml);
 
         AreasLayer::ConstPtr getAreasLayer() const;
 
