@@ -19,21 +19,22 @@ class ZonesLayerFixture : public ::testing::Test
         void SetUp()
         {
             std::string kelojson_map_file = mkstr(KELOJSON_TEST_MAP_FILE);
-            ASSERT_TRUE(kelojson_map.initialiseFromFile(kelojson_map_file));
+            kelojson_map = Map::initialiseFromFile(kelojson_map_file);
+            ASSERT_NE(kelojson_map, nullptr);
 
-            areas_layer = kelojson_map.getAreasLayer();
+            areas_layer = kelojson_map->getAreasLayer();
             ASSERT_NE(areas_layer, nullptr);
 
             area = areas_layer->getArea(-101782);
             ASSERT_NE(area, nullptr);
             EXPECT_EQ(area->getName(), "Room1");
 
-            zones_layer = kelojson_map.getZonesLayer();
+            zones_layer = kelojson_map->getZonesLayer();
             ASSERT_NE(zones_layer, nullptr);
         }
 
     protected:
-        Map kelojson_map;
+        Map::ConstPtr kelojson_map;
         AreasLayer::ConstPtr areas_layer;
         ZonesLayer::ConstPtr zones_layer;
         Area::ConstPtr area;

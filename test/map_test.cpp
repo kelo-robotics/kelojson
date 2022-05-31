@@ -14,11 +14,12 @@ class MapFixture : public ::testing::Test
         void SetUp()
         {
             std::string kelojson_map_file = mkstr(KELOJSON_TEST_MAP_FILE);
-            EXPECT_TRUE(kelojson_map.initialiseFromFile(kelojson_map_file));
+            kelojson_map = Map::initialiseFromFile(kelojson_map_file);
+            ASSERT_NE(kelojson_map, nullptr);
         }
 
     protected:
-        Map kelojson_map;
+        Map::ConstPtr kelojson_map;
 };
 
 TEST_F(MapFixture, simpleCreation)

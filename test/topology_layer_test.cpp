@@ -17,21 +17,22 @@ class TopologyLayerFixture : public ::testing::Test
         void SetUp()
         {
             std::string kelojson_map_file = mkstr(KELOJSON_TEST_MAP_FILE);
-            ASSERT_TRUE(kelojson_map.initialiseFromFile(kelojson_map_file));
+            kelojson_map = Map::initialiseFromFile(kelojson_map_file);
+            ASSERT_NE(kelojson_map, nullptr);
 
-            areas_layer = kelojson_map.getAreasLayer();
+            areas_layer = kelojson_map->getAreasLayer();
             ASSERT_NE(areas_layer, nullptr);
 
             area = areas_layer->getArea(-101782);
             ASSERT_NE(area, nullptr);
             EXPECT_EQ(area->getName(), "Room1");
 
-            topology_layer = kelojson_map.getTopologyLayer();
+            topology_layer = kelojson_map->getTopologyLayer();
             ASSERT_NE(topology_layer, nullptr);
         }
 
     protected:
-        Map kelojson_map;
+        Map::ConstPtr kelojson_map;
         AreasLayer::ConstPtr areas_layer;
         TopologyLayer::ConstPtr topology_layer;
         Area::ConstPtr area;
