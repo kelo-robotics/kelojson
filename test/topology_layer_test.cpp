@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <kelojson_loader/KelojsonMap.h>
+#include <kelojson_loader/Map.h>
+#include <kelojson_loader/layer/zones/ZonesLayer.h>
 
 /* Stringification helper macros */
 #define mkstr2(X) #X
@@ -8,6 +9,7 @@
 
 using namespace kelo::kelojson;
 using kelo::geometry_common::Point2D;
+using kelo::geometry_common::Pose2D;
 
 class TopologyLayerFixture : public ::testing::Test
 {
@@ -15,73 +17,124 @@ class TopologyLayerFixture : public ::testing::Test
         void SetUp()
         {
             std::string kelojson_map_file = mkstr(KELOJSON_TEST_MAP_FILE);
-            EXPECT_TRUE(kelojson_map.loadFile(kelojson_map_file));
+            kelojson_map = Map::initialiseFromFile(kelojson_map_file);
+            ASSERT_NE(kelojson_map, nullptr);
 
-            areas_layer = kelojson_map.getAreasLayer();
-            EXPECT_NE(areas_layer, nullptr);
+            areas_layer = kelojson_map->getAreasLayer();
+            ASSERT_NE(areas_layer, nullptr);
 
             area = areas_layer->getArea(-101782);
-            EXPECT_NE(area, nullptr);
-            EXPECT_EQ(area->name, "Room1");
+            ASSERT_NE(area, nullptr);
+            EXPECT_EQ(area->getName(), "Room1");
 
-            topology_layer = kelojson_map.getTopologyLayer();
-            EXPECT_NE(topology_layer, nullptr);
+            topology_layer = kelojson_map->getTopologyLayer();
+            ASSERT_NE(topology_layer, nullptr);
         }
 
     protected:
-        Map kelojson_map;
-        const AreasLayer* areas_layer;
-        const TopologyLayer* topology_layer;
-        const Area* area;
+        Map::ConstPtr kelojson_map;
+        AreasLayer::ConstPtr areas_layer;
+        TopologyLayer::ConstPtr topology_layer;
+        Area::ConstPtr area;
 };
+
+TEST_F(TopologyLayerFixture, simpleCreation)
+{
+}
 
 TEST_F(TopologyLayerFixture, getNodesInArea)
 {
-    std::vector<int> node_ids = topology_layer->getNodesInArea(area);
-    EXPECT_EQ(node_ids.size(), 1u);
-    EXPECT_EQ(node_ids[0], -116953);
+    const TopologyNode::ConstVec nodes = topology_layer->getNodesInArea(*area);
+    EXPECT_EQ(nodes.size(), 1u);
+    EXPECT_EQ(nodes.front()->getPrimitiveId(), -116953);
+}
+
+TEST_F(TopologyLayerFixture, getNearestNodeInAreaPoint)
+{
+    Point2D pt(0, 0);
+    const TopologyNode::ConstPtr node = topology_layer->getNearestNodeInArea(pt);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(node->getPrimitiveId(), -116953);
+}
+
+TEST_F(TopologyLayerFixture, getNode)
+{
+    const TopologyNode::ConstPtr node = topology_layer->getNodeWithInternalId(0);
+    EXPECT_NE(node, nullptr);
+
+    const TopologyNode::ConstPtr node_2 = topology_layer->getNodeWithPrimitiveId(
+            node->getPrimitiveId());
+    EXPECT_NE(node_2, nullptr);
+
+    EXPECT_EQ(node->getInternalId(), node_2->getInternalId());
+    EXPECT_EQ(node->getPrimitiveId(), node_2->getPrimitiveId());
+    EXPECT_EQ(node->getName(), node_2->getName());
+    EXPECT_EQ(node->getPosition(), node_2->getPosition());
+}
+
+TEST_F(TopologyLayerFixture, getOverlappingAreaId)
+{
+    const TopologyNode::ConstPtr node = topology_layer->getNodeWithPrimitiveId(-116953);
+    EXPECT_NE(node, nullptr);
+
+    int area_id;
+    EXPECT_TRUE(node->getOverlappingAreaId(area_id));
+    EXPECT_EQ(area_id, -101782);
+}
+
+TEST_F(TopologyLayerFixture, getAdjacentNodes)
+{
+    const TopologyNode::ConstPtr node = topology_layer->getNodeWithPrimitiveId(-116953);
+    const TopologyNode::ConstVec adjacent_nodes = topology_layer->getAdjacentNodes(*node);
+    EXPECT_EQ(adjacent_nodes.size(), 1u);
+    EXPECT_EQ(adjacent_nodes.front()->getPrimitiveId(), -116954);
 }
 
 TEST_F(TopologyLayerFixture, getEdgesInArea)
 {
-    std::vector<unsigned int> edge_ids = topology_layer->getEdgesInArea(area, false);
-    EXPECT_EQ(edge_ids.size(), 1u);
-    EXPECT_EQ(edge_ids[0], 0u);
+    const TopologyEdge::ConstVec edges = topology_layer->getEdgesInArea(*area);
+    EXPECT_EQ(edges.size(), 1u);
+    EXPECT_EQ(edges.front()->getPrimitiveId(), -101829);
+    EXPECT_EQ(edges.front()->getStartNode()->getPrimitiveId(), -116953);
+    EXPECT_EQ(edges.front()->getEndNode()->getPrimitiveId(), -116954);
 }
 
-TEST_F(TopologyLayerFixture, getEdgeId)
-{
-    unsigned int edge_id;
-    EXPECT_TRUE(topology_layer->getEdgeId(-116953, -116954, edge_id));
-    EXPECT_EQ(edge_id, 0u);
-
-    EXPECT_FALSE(topology_layer->getEdgeId(-116953, -116955, edge_id));
-}
-
-TEST_F(TopologyLayerFixture, getClosestNodeInArea)
+TEST_F(TopologyLayerFixture, getNearestEdgeInAreaPoint)
 {
     Point2D pt(0, 0);
-    const TopologyNode* topology_node = topology_layer->getClosestNodeInArea(pt);
-    EXPECT_NE(topology_node, nullptr);
-    EXPECT_EQ(topology_node->featureId, -116953);
+    const TopologyEdge::ConstPtr edge = topology_layer->getNearestEdgeInArea(pt);
+    EXPECT_NE(edge, nullptr);
+    EXPECT_EQ(edge->getPrimitiveId(), -101829);
+    EXPECT_EQ(edge->getStartNode()->getPrimitiveId(), -116953);
+    EXPECT_EQ(edge->getEndNode()->getPrimitiveId(), -116954);
 }
 
-TEST_F(TopologyLayerFixture, getClosestEdgeInArea)
+TEST_F(TopologyLayerFixture, getNearestEdgeInAreaPose)
 {
-    Point2D pt(0, 0);
-    const TopologyEdge* topology_edge = topology_layer->getClosestEdgeInArea(pt);
-    EXPECT_NE(topology_edge, nullptr);
-    EXPECT_EQ(topology_edge->featureId, -101829);
-    EXPECT_EQ(topology_edge->edgeId, 0u);
+    Pose2D pose(-0.75f, 3.0f, 0.0f);
+    const TopologyEdge::ConstPtr edge = topology_layer->getNearestEdgeInArea(pose);
+    ASSERT_NE(edge, nullptr);
+    EXPECT_EQ(edge->getPrimitiveId(), -101829);
+    EXPECT_EQ(edge->getStartNode()->getPrimitiveId(), -116954);
+    EXPECT_EQ(edge->getEndNode()->getPrimitiveId(), -116955);
+
+    Pose2D pose_2(-0.75f, 3.0f, 0.8f);
+    const TopologyEdge::ConstPtr edge_2 = topology_layer->getNearestEdgeInArea(pose_2, false, 0.1f);
+    ASSERT_EQ(edge_2, nullptr);
 }
 
-TEST_F(TopologyLayerFixture, getConnectedEdges)
+TEST_F(TopologyLayerFixture, getNearestEdgeInAreaPoseOneWay)
 {
-    Point2D pt(0, 0);
-    const TopologyNode& topology_node = topology_layer->topologyNodes.at(-116955);
-    std::vector<unsigned int> connected_edge_ids = topology_layer->getConnectedEdges(topology_node);
-    EXPECT_EQ(connected_edge_ids.size(), 2u);
-    EXPECT_EQ(connected_edge_ids[0], 1u);
-    EXPECT_EQ(connected_edge_ids[1], 2u);
+    Pose2D pose(-0.75f, 3.0f, 0.0f);
+    const TopologyEdge::ConstPtr edge = topology_layer->getNearestEdgeInArea(pose, true);
+    ASSERT_NE(edge, nullptr);
+    EXPECT_EQ(edge->getPrimitiveId(), -102098);
+    EXPECT_EQ(edge->getStartNode()->getPrimitiveId(), -123369);
+    EXPECT_EQ(edge->getEndNode()->getPrimitiveId(), -123370);
 }
 
+TEST_F(TopologyLayerFixture, getEdge)
+{
+    const TopologyEdge::ConstPtr edge = topology_layer->getEdgeWithInternalId(0);
+    EXPECT_NE(edge, nullptr);
+}

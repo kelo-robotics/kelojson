@@ -5,8 +5,6 @@ add_compile_options(
     -std=c++11
     -Wall
     -Wextra
-    -Wno-unused-variable
-    -Wno-deprecated-copy
 )
 
 find_package(catkin REQUIRED COMPONENTS
@@ -55,13 +53,43 @@ include_directories(
 )
 
 add_library(kelojson_loader
-    src/KelojsonAreasLayer.cpp
-    src/KelojsonLayer.cpp
-    src/KelojsonMap.cpp
-    src/KelojsonTypes.cpp
-    src/KelojsonTopologyLayer.cpp
-    src/KelojsonZonesLayer.cpp
-    src/OsmPrimitives.cpp
+    # osm
+    src/osm/Primitive.cpp
+    src/osm/NodePrimitive.cpp
+    src/osm/WayPrimitive.cpp
+    src/osm/RelationPrimitive.cpp
+    src/osm/PrimitiveFactory.cpp
+    src/osm/PrimitiveUtils.cpp
+
+    # layer
+    src/layer/LayerFactory.cpp
+
+    # areas
+    src/layer/areas/AreasLayer.cpp
+    src/layer/areas/Area.cpp
+    src/layer/areas/Transition.cpp
+    src/layer/areas/AreaPlanner.cpp
+
+    # zones
+    src/layer/zones/ZonesLayer.cpp
+    src/layer/zones/Zone.cpp
+    src/layer/zones/NodeZone.cpp
+    src/layer/zones/PolygonZone.cpp
+    src/layer/zones/PolylineZone.cpp
+    src/layer/zones/RampZone.cpp
+    src/layer/zones/LoadParkingZone.cpp
+    src/layer/zones/OcclusionZone.cpp
+
+    # topology
+    src/layer/topology/TopologyLayer.cpp
+    src/layer/topology/TopologyNode.cpp
+    src/layer/topology/TopologyEdge.cpp
+
+    # occupancy
+    src/layer/occupancy/OccupancyGridLayer.cpp
+    src/layer/occupancy/OccupancyGrid.cpp
+
+    src/Map.cpp
 )
 
 target_link_libraries(kelojson_loader
@@ -74,3 +102,10 @@ target_link_libraries(kelojson_loader
 if (CATKIN_ENABLE_TESTING)
     add_subdirectory(test)
 endif ()
+
+# =======
+# INSTALL
+# =======
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)

@@ -63,6 +63,17 @@
   <node id='-123256' action='modify' visible='true' lat='-0.00000656623' lon='0.00004016078' />
   <node id='-123257' action='modify' visible='true' lat='-0.00000662798' lon='0.00003114655' />
   <node id='-123258' action='modify' visible='true' lat='-0.00001558214' lon='0.00003120788' />
+  <node id='-123263' action='modify' visible='true' lat='0.00001651819' lon='0.0000190593' />
+  <node id='-123264' action='modify' visible='true' lat='0.00001658506' lon='0.00002802055' />
+  <node id='-123265' action='modify' visible='true' lat='0.00001210618' lon='0.00002805397' />
+  <node id='-123266' action='modify' visible='true' lat='0.00001203931' lon='0.00001909273' />
+  <node id='-123271' action='modify' visible='true' lat='0.00000394569' lon='0.00004520742' />
+  <node id='-123272' action='modify' visible='true' lat='-0.00000200618' lon='0.00004527429' />
+  <node id='-123273' action='modify' visible='true' lat='-0.00000193782' lon='0.0000513584' />
+  <node id='-123369' action='modify' visible='true' lat='0.00002267068' lon='-0.00000033444' />
+  <node id='-123370' action='modify' visible='true' lat='0.00002287131' lon='0.00004039242' />
+  <node id='-123381' action='modify' visible='true' lat='0.00003230068' lon='0.00004052617' />
+  <node id='-123382' action='modify' visible='true' lat='0.00003189943' lon='-0.00000488194' />
   <way id='-101782' action='modify' visible='true'>
     <nd ref='-104248' />
     <nd ref='-104249' />
@@ -130,7 +141,6 @@
     <nd ref='-116954' />
     <nd ref='-116955' />
     <nd ref='-116956' />
-    <nd ref='-116957' />
     <tag k='highway' v='robot_path' />
     <tag k='layer' v='topology' />
     <tag k='oneway' v='no' />
@@ -163,6 +173,46 @@
     <tag k='characteristic' v='load_parking' />
     <tag k='layer' v='zones' />
     <tag k='name' v='room2_load_parking_1' />
+    <tag k='theta' v='1.6' />
+  </way>
+  <way id='-101967' action='modify' visible='true'>
+    <nd ref='-123263' />
+    <nd ref='-123264' />
+    <nd ref='-123265' />
+    <nd ref='-123266' />
+    <nd ref='-123263' />
+    <tag k='characteristic' v='ramp' />
+    <tag k='inclination' v='0.1' />
+    <tag k='layer' v='zones' />
+  </way>
+  <way id='-101969' action='modify' visible='true'>
+    <nd ref='-123271' />
+    <nd ref='-123272' />
+    <nd ref='-123273' />
+    <tag k='characteristic' v='occlusion' />
+    <tag k='layer' v='zones' />
+  </way>
+  <way id='-101973' action='modify' visible='true'>
+    <nd ref='-116956' />
+    <nd ref='-123370' />
+    <nd ref='-116957' />
+    <tag k='highway' v='robot_path' />
+    <tag k='layer' v='topology' />
+    <tag k='oneway' v='no' />
+  </way>
+  <way id='-102098' action='modify' visible='true'>
+    <nd ref='-123369' />
+    <nd ref='-123370' />
+    <tag k='highway' v='robot_path' />
+    <tag k='layer' v='topology' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='-102144' action='modify' visible='true'>
+    <nd ref='-123381' />
+    <nd ref='-123382' />
+    <tag k='highway' v='robot_path' />
+    <tag k='layer' v='topology' />
+    <tag k='oneway' v='yes' />
   </way>
   <relation id='-99752' action='modify' visible='true'>
     <member type='way' ref='-101813' role='areas' />
@@ -272,6 +322,51 @@
     <member type='way' ref='-101965' role='parent' />
     <member type='way' ref='-101789' role='areas' />
     <tag k='layer' v='zones' />
+    <tag k='type' v='association' />
+  </relation>
+  <relation id='-99792' visible='true'>
+    <member type='way' ref='-101967' role='parent' />
+    <member type='way' ref='-101789' role='areas' />
+    <tag k='layer' v='zones' />
+    <tag k='type' v='association' />
+  </relation>
+  <relation id='-99800' action='modify' visible='true'>
+    <member type='way' ref='-101838' role='parking' />
+    <tag k='layer' v='zones' />
+    <tag k='name' v='room1_load_parking' />
+    <tag k='type' v='load_parking_group' />
+  </relation>
+  <relation id='-99808' action='modify' visible='true'>
+    <member type='way' ref='-101967' role='ramp' />
+    <member type='node' ref='-123264' role='bottom' />
+    <member type='node' ref='-123265' role='bottom' />
+    <member type='node' ref='-123266' role='top' />
+    <member type='node' ref='-123263' role='top' />
+    <tag k='layer' v='zones' />
+    <tag k='type' v='ramp_edges' />
+  </relation>
+  <relation id='-99813' visible='true'>
+    <member type='node' ref='-123370' role='parent' />
+    <member type='way' ref='-101813' role='areas' />
+    <tag k='layer' v='topology' />
+    <tag k='type' v='association' />
+  </relation>
+  <relation id='-99814' visible='true'>
+    <member type='node' ref='-123369' role='parent' />
+    <member type='way' ref='-101805' role='areas' />
+    <tag k='layer' v='topology' />
+    <tag k='type' v='association' />
+  </relation>
+  <relation id='-99815' visible='true'>
+    <member type='node' ref='-123382' role='parent' />
+    <member type='way' ref='-101805' role='areas' />
+    <tag k='layer' v='topology' />
+    <tag k='type' v='association' />
+  </relation>
+  <relation id='-99816' visible='true'>
+    <member type='node' ref='-123381' role='parent' />
+    <member type='way' ref='-101813' role='areas' />
+    <tag k='layer' v='topology' />
     <tag k='type' v='association' />
   </relation>
 </osm>

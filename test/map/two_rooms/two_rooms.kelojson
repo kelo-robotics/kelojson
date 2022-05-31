@@ -71,11 +71,178 @@
         },
         {
             "type": "Feature",
+            "id": -102144,
+            "properties": {
+                "layer": "topology",
+                "highway": "robot_path",
+                "oneway": "yes"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        4.50843937713,
+                        3.59561955306
+                    ],
+                    [
+                        -0.54546550489,
+                        3.55109175715
+                    ]
+                ],
+                "nodeIds": [
+                    [
+                        -123381,
+                        -123382
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -102098,
+            "properties": {
+                "layer": "topology",
+                "oneway": "yes",
+                "highway": "robot_path"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        -0.03339584724,
+                        2.52695244058
+                    ],
+                    [
+                        4.49730742805,
+                        2.54921633931
+                    ]
+                ],
+                "nodeIds": [
+                    [
+                        -123369,
+                        -123370
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -101973,
+            "properties": {
+                "highway": "robot_path",
+                "layer": "topology",
+                "oneway": "no"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        4.49730742805,
+                        2.99449430193
+                    ],
+                    [
+                        4.49730742805,
+                        2.54921633931
+                    ],
+                    [
+                        4.50843937713,
+                        1.31356999144
+                    ]
+                ],
+                "nodeIds": [
+                    [
+                        -116956,
+                        -123370,
+                        -116957
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -101969,
+            "properties": {
+                "characteristic": "occlusion",
+                "layer": "zones"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        5.03164098386,
+                        0.43414601477
+                    ],
+                    [
+                        5.04277293294,
+                        -0.22263898069
+                    ],
+                    [
+                        5.72182182677,
+                        -0.21150703218
+                    ]
+                ],
+                "nodeIds": [
+                    [
+                        -123271,
+                        -123272,
+                        -123273
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -101967,
+            "properties": {
+                "characteristic": "ramp",
+                "inclination": "0.1",
+                "layer": "zones"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            2.12620227415,
+                            1.83677159792
+                        ],
+                        [
+                            3.11694574221,
+                            1.84790354779
+                        ],
+                        [
+                            3.12807769129,
+                            1.34696583808
+                        ],
+                        [
+                            2.12620227415,
+                            1.33583388875
+                        ],
+                        [
+                            2.12620227415,
+                            1.83677159792
+                        ]
+                    ]
+                ],
+                "nodeIds": [
+                    [
+                        -123263,
+                        -123264,
+                        -123265,
+                        -123266,
+                        -123263
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
             "id": -101965,
             "properties": {
                 "characteristic": "load_parking",
                 "layer": "zones",
-                "name": "room2_load_parking_1"
+                "name": "room2_load_parking_1",
+                "theta": "1.6"
             },
             "geometry": {
                 "type": "Polygon",
@@ -229,10 +396,6 @@
                     [
                         4.49730742805,
                         2.99449430193
-                    ],
-                    [
-                        4.50843937713,
-                        1.31356999144
                     ]
                 ],
                 "nodeIds": [
@@ -240,8 +403,7 @@
                         -116953,
                         -116954,
                         -116955,
-                        -116956,
-                        -116957
+                        -116956
                     ]
                 ]
             }
@@ -528,6 +690,171 @@
                         -104253,
                         -104248
                     ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99816,
+            "properties": {
+                "layer": "topology",
+                "type": "association"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -123381,
+                        "type": "Node",
+                        "role": "parent"
+                    },
+                    {
+                        "id": -101813,
+                        "type": "Way",
+                        "role": "areas"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99815,
+            "properties": {
+                "layer": "topology",
+                "type": "association"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -123382,
+                        "type": "Node",
+                        "role": "parent"
+                    },
+                    {
+                        "id": -101805,
+                        "type": "Way",
+                        "role": "areas"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99814,
+            "properties": {
+                "layer": "topology",
+                "type": "association"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -123369,
+                        "type": "Node",
+                        "role": "parent"
+                    },
+                    {
+                        "id": -101805,
+                        "type": "Way",
+                        "role": "areas"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99813,
+            "properties": {
+                "layer": "topology",
+                "type": "association"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -123370,
+                        "type": "Node",
+                        "role": "parent"
+                    },
+                    {
+                        "id": -101813,
+                        "type": "Way",
+                        "role": "areas"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99808,
+            "properties": {
+                "layer": "zones",
+                "type": "ramp_edges"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -101967,
+                        "type": "Way",
+                        "role": "ramp"
+                    },
+                    {
+                        "id": -123264,
+                        "type": "Node",
+                        "role": "bottom"
+                    },
+                    {
+                        "id": -123265,
+                        "type": "Node",
+                        "role": "bottom"
+                    },
+                    {
+                        "id": -123266,
+                        "type": "Node",
+                        "role": "top"
+                    },
+                    {
+                        "id": -123263,
+                        "type": "Node",
+                        "role": "top"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99800,
+            "properties": {
+                "layer": "zones",
+                "name": "room1_load_parking",
+                "type": "load_parking_group"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -101838,
+                        "type": "Way",
+                        "role": "parking"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99792,
+            "properties": {
+                "layer": "zones",
+                "type": "association"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -101967,
+                        "type": "Way",
+                        "role": "parent"
+                    },
+                    {
+                        "id": -101789,
+                        "type": "Way",
+                        "role": "areas"
+                    }
                 ]
             }
         },
