@@ -56,26 +56,6 @@ TEST_F(TopologyLayerFixture, getNearestNodeInAreaPoint)
     EXPECT_EQ(node->getPrimitiveId(), -116953);
 }
 
-TEST_F(TopologyLayerFixture, getNearestNodeInAreaPose)
-{
-    Pose2D pose(-0.75f, 3.0f, 0.0f);
-    const TopologyNode::ConstPtr node = topology_layer->getNearestNodeInArea(pose);
-    ASSERT_NE(node, nullptr);
-    EXPECT_EQ(node->getPrimitiveId(), -116954);
-
-    Pose2D pose_2(-0.75f, 3.0f, 3.0f);
-    const TopologyNode::ConstPtr node_2 = topology_layer->getNearestNodeInArea(pose_2);
-    ASSERT_EQ(node_2, nullptr);
-}
-
-TEST_F(TopologyLayerFixture, getNearestNodeInAreaPoseOneWay)
-{
-    Pose2D pose(-0.75f, 3.0f, 0.0f);
-    const TopologyNode::ConstPtr node = topology_layer->getNearestNodeInArea(pose, true);
-    ASSERT_NE(node, nullptr);
-    EXPECT_EQ(node->getPrimitiveId(), -123369);
-}
-
 TEST_F(TopologyLayerFixture, getNode)
 {
     const TopologyNode::ConstPtr node = topology_layer->getNodeWithInternalId(0);
@@ -91,10 +71,69 @@ TEST_F(TopologyLayerFixture, getNode)
     EXPECT_EQ(node->getPosition(), node_2->getPosition());
 }
 
+TEST_F(TopologyLayerFixture, getOverlappingAreaId)
+{
+    const TopologyNode::ConstPtr node = topology_layer->getNodeWithPrimitiveId(-116953);
+    EXPECT_NE(node, nullptr);
+
+    int area_id;
+    EXPECT_TRUE(node->getOverlappingAreaId(area_id));
+    EXPECT_EQ(area_id, -101782);
+}
+
 TEST_F(TopologyLayerFixture, getAdjacentNodes)
 {
     const TopologyNode::ConstPtr node = topology_layer->getNodeWithPrimitiveId(-116953);
     const TopologyNode::ConstVec adjacent_nodes = topology_layer->getAdjacentNodes(*node);
     EXPECT_EQ(adjacent_nodes.size(), 1u);
     EXPECT_EQ(adjacent_nodes.front()->getPrimitiveId(), -116954);
+}
+
+TEST_F(TopologyLayerFixture, getEdgesInArea)
+{
+    const TopologyEdge::ConstVec edges = topology_layer->getEdgesInArea(*area);
+    EXPECT_EQ(edges.size(), 1u);
+    EXPECT_EQ(edges.front()->getPrimitiveId(), -101829);
+    EXPECT_EQ(edges.front()->getStartNode()->getPrimitiveId(), -116953);
+    EXPECT_EQ(edges.front()->getEndNode()->getPrimitiveId(), -116954);
+}
+
+TEST_F(TopologyLayerFixture, getNearestEdgeInAreaPoint)
+{
+    Point2D pt(0, 0);
+    const TopologyEdge::ConstPtr edge = topology_layer->getNearestEdgeInArea(pt);
+    EXPECT_NE(edge, nullptr);
+    EXPECT_EQ(edge->getPrimitiveId(), -101829);
+    EXPECT_EQ(edge->getStartNode()->getPrimitiveId(), -116953);
+    EXPECT_EQ(edge->getEndNode()->getPrimitiveId(), -116954);
+}
+
+TEST_F(TopologyLayerFixture, getNearestEdgeInAreaPose)
+{
+    Pose2D pose(-0.75f, 3.0f, 0.0f);
+    const TopologyEdge::ConstPtr edge = topology_layer->getNearestEdgeInArea(pose);
+    ASSERT_NE(edge, nullptr);
+    EXPECT_EQ(edge->getPrimitiveId(), -101829);
+    EXPECT_EQ(edge->getStartNode()->getPrimitiveId(), -116954);
+    EXPECT_EQ(edge->getEndNode()->getPrimitiveId(), -116955);
+
+    Pose2D pose_2(-0.75f, 3.0f, 0.8f);
+    const TopologyEdge::ConstPtr edge_2 = topology_layer->getNearestEdgeInArea(pose_2, false, 0.1f);
+    ASSERT_EQ(edge_2, nullptr);
+}
+
+TEST_F(TopologyLayerFixture, getNearestEdgeInAreaPoseOneWay)
+{
+    Pose2D pose(-0.75f, 3.0f, 0.0f);
+    const TopologyEdge::ConstPtr edge = topology_layer->getNearestEdgeInArea(pose, true);
+    ASSERT_NE(edge, nullptr);
+    EXPECT_EQ(edge->getPrimitiveId(), -102098);
+    EXPECT_EQ(edge->getStartNode()->getPrimitiveId(), -123369);
+    EXPECT_EQ(edge->getEndNode()->getPrimitiveId(), -123370);
+}
+
+TEST_F(TopologyLayerFixture, getEdge)
+{
+    const TopologyEdge::ConstPtr edge = topology_layer->getEdgeWithInternalId(0);
+    EXPECT_NE(edge, nullptr);
 }
