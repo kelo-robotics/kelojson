@@ -3,6 +3,7 @@
 
 #include <kelojson_loader/layer/Layer.h>
 #include <kelojson_loader/layer/topology/TopologyNode.h>
+#include <kelojson_loader/layer/topology/TopologyEdge.h>
 
 namespace kelo {
 namespace kelojson {
@@ -41,7 +42,7 @@ class TopologyLayer : public Layer
 
         const TopologyNode::ConstVec getAllNodes() const;
 
-        const std::vector<std::vector<bool>>& getAdjacencyMatrix() const;
+        const TopologyEdge::Matrix& getAdjacencyMatrix() const;
 
         friend std::ostream& operator << (
                 std::ostream& out,
@@ -50,7 +51,7 @@ class TopologyLayer : public Layer
     private:
 
         TopologyNode::Vec nodes_;
-        std::vector<std::vector<bool>> adjacency_matrix_;
+        TopologyEdge::Matrix adjacency_matrix_;
         std::map<int, size_t> primitive_id_to_internal_id_;
 
 };

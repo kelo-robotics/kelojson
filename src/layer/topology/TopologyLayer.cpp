@@ -55,8 +55,8 @@ bool TopologyLayer::initialise(const osm::Primitive::Store& store)
     }
 
     /* fill adjacency matrix */
-    adjacency_matrix_ = std::vector<std::vector<bool>>(
-            nodes_.size(), std::vector<bool>(nodes_.size(), false));
+    adjacency_matrix_.clear();
+    adjacency_matrix_.resize(nodes_.size(), TopologyEdge::Vec(nodes_.size(), nullptr));
     for ( int way_id : topology_way_ids )
     {
         const osm::WayPrimitive::Ptr way = osm::PrimitiveUtils::getWay(store, way_id);
@@ -76,13 +76,18 @@ bool TopologyLayer::initialise(const osm::Primitive::Store& store)
             if ( i + 1 < node_ids.size() )
             {
                 size_t next_id = primitive_id_to_internal_id_.at(node_ids[i+1]);
-                adjacency_matrix_[curr_id][next_id] = true;
+                TopologyEdge::Ptr edge = std::make_shared<TopologyEdge>();
+                if ( !edge->initialise(way_id, store) )
+                {
+                    return false;
+                }
+                adjacency_matrix_[curr_id][next_id] = edge;
             }
 
             if ( !is_oneway && i > 0 )
             {
                 size_t prev_id = primitive_id_to_internal_id_.at(node_ids[i-1]);
-                adjacency_matrix_[curr_id][prev_id] = true;
+                adjacency_matrix_[curr_id][prev_id] = adjacency_matrix_[prev_id][curr_id];
             }
         }
     }
@@ -232,7 +237,7 @@ const TopologyNode::ConstVec TopologyLayer::getAdjacentNodes(
     std::vector<size_t> adjacent_node_ids;
     for ( size_t i = 0; i < adjacency_matrix_[internal_id].size(); i++ )
     {
-        if ( adjacency_matrix_[internal_id][i] )
+        if ( adjacency_matrix_[internal_id][i] != nullptr )
         {
             adjacent_node_ids.push_back(i);
         }
@@ -257,24 +262,28 @@ const TopologyNode::ConstVec TopologyLayer::getAllNodes() const
     return nodes;
 }
 
-const std::vector<std::vector<bool>>& TopologyLayer::getAdjacencyMatrix() const
+const TopologyEdge::Matrix& TopologyLayer::getAdjacencyMatrix() const
 {
     return adjacency_matrix_;
 }
 
 std::ostream& operator << (std::ostream& out, const TopologyLayer& layer)
 {
+    out << "TopologyLayer:" << std::endl
+        << "  Nodes:" << std::endl;
     for ( size_t i = 0; i < layer.nodes_.size(); i++ )
     {
-        out << *(layer.nodes_[i]) << std::endl;
+        out << "    " << *(layer.nodes_[i]) << std::endl;
     }
 
+    out << "  Adjacency matrix:" << std::endl;
     /* print adjacency matrix */
     for ( size_t i = 0; i < layer.nodes_.size(); i++ )
     {
+        out << "    ";
         for ( size_t j = 0; j < layer.nodes_.size(); j++ )
         {
-            out << layer.adjacency_matrix_[i][j] << " ";
+            out << ( layer.adjacency_matrix_[i][j] != nullptr ) << " ";
         }
         out << std::endl;
     }
