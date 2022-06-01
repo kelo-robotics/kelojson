@@ -71,10 +71,55 @@
         },
         {
             "type": "Feature",
+            "id": -102148,
+            "properties": {
+                "characteristic": "transfer_station",
+                "layer": "zones",
+                "name": "station_room_1"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            -1.79224380177,
+                            1.74771600673
+                        ],
+                        [
+                            -1.03527126438,
+                            1.74771600673
+                        ],
+                        [
+                            -1.03527126438,
+                            1.00187541677
+                        ],
+                        [
+                            -1.79224380177,
+                            1.00187541677
+                        ],
+                        [
+                            -1.79224380177,
+                            1.74771600673
+                        ]
+                    ]
+                ],
+                "nodeIds": [
+                    [
+                        -123389,
+                        -123390,
+                        -123391,
+                        -123392,
+                        -123389
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
             "id": -102144,
             "properties": {
-                "layer": "topology",
                 "highway": "robot_path",
+                "layer": "topology",
                 "oneway": "yes"
             },
             "geometry": {
@@ -101,9 +146,9 @@
             "type": "Feature",
             "id": -102098,
             "properties": {
+                "highway": "robot_path",
                 "layer": "topology",
-                "oneway": "yes",
-                "highway": "robot_path"
+                "oneway": "yes"
             },
             "geometry": {
                 "type": "LineString",
@@ -690,6 +735,51 @@
                         -104253,
                         -104248
                     ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99830,
+            "properties": {
+                "layer": "zones",
+                "name": "station_group_room1",
+                "type": "transfer_station_group"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -102148,
+                        "type": "Way",
+                        "role": "station"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "id": -99826,
+            "properties": {
+                "layer": "zones",
+                "type": "transfer_station_opening"
+            },
+            "relation": {
+                "members": [
+                    {
+                        "id": -102148,
+                        "type": "Way",
+                        "role": "transfer_station_zone"
+                    },
+                    {
+                        "id": -123390,
+                        "type": "Node",
+                        "role": "opening"
+                    },
+                    {
+                        "id": -123391,
+                        "type": "Node",
+                        "role": "opening"
+                    }
                 ]
             }
         },

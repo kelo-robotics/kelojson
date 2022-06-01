@@ -74,6 +74,10 @@
   <node id='-123370' action='modify' visible='true' lat='0.00002287131' lon='0.00004039242' />
   <node id='-123381' action='modify' visible='true' lat='0.00003230068' lon='0.00004052617' />
   <node id='-123382' action='modify' visible='true' lat='0.00003189943' lon='-0.00000488194' />
+  <node id='-123389' action='modify' visible='true' lat='0.00001571569' lon='-0.00001605006' />
+  <node id='-123390' action='modify' visible='true' lat='0.00001571569' lon='-0.00000929569' />
+  <node id='-123391' action='modify' visible='true' lat='0.00000896131' lon='-0.00000929569' />
+  <node id='-123392' action='modify' visible='true' lat='0.00000896131' lon='-0.00001605006' />
   <way id='-101782' action='modify' visible='true'>
     <nd ref='-104248' />
     <nd ref='-104249' />
@@ -213,6 +217,16 @@
     <tag k='highway' v='robot_path' />
     <tag k='layer' v='topology' />
     <tag k='oneway' v='yes' />
+  </way>
+  <way id='-102148' action='modify' visible='true'>
+    <nd ref='-123389' />
+    <nd ref='-123390' />
+    <nd ref='-123391' />
+    <nd ref='-123392' />
+    <nd ref='-123389' />
+    <tag k='characteristic' v='transfer_station' />
+    <tag k='layer' v='zones' />
+    <tag k='name' v='station_room_1' />
   </way>
   <relation id='-99752' action='modify' visible='true'>
     <member type='way' ref='-101813' role='areas' />
@@ -368,5 +382,18 @@
     <member type='way' ref='-101813' role='areas' />
     <tag k='layer' v='topology' />
     <tag k='type' v='association' />
+  </relation>
+  <relation id='-99826' action='modify' visible='true'>
+    <member type='way' ref='-102148' role='transfer_station_zone' />
+    <member type='node' ref='-123390' role='opening' />
+    <member type='node' ref='-123391' role='opening' />
+    <tag k='layer' v='zones' />
+    <tag k='type' v='transfer_station_opening' />
+  </relation>
+  <relation id='-99830' action='modify' visible='true'>
+    <member type='way' ref='-102148' role='station' />
+    <tag k='layer' v='zones' />
+    <tag k='name' v='station_group_room1' />
+    <tag k='type' v='transfer_station_group' />
   </relation>
 </osm>
