@@ -148,14 +148,6 @@ bool LoadParkingZone::initialise(int way_id, const osm::Primitive::Store& store)
                 load_parking_groups_.insert(name);
             }
         }
-        if ( members.size() >= 3 && // load_parking way polygon + at least 2 primary_opening nodes + (optional)secondary_opening nodes
-             members[0].type == osm::PrimitiveType::WAY &&
-             members[0].role == "load_parking_zone" &&
-             members[0].id == id_ )
-        {
-            found = true;
-            load_parking_relation_id = relation_id;
-        }
     }
 
     return true;
