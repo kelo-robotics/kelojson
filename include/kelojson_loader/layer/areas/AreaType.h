@@ -32,6 +32,10 @@ inline std::string asString(const AreaType& area_type)
 inline AreaType asAreaType(const std::string& area_type_string)
 {
     std::string area_type_str = area_type_string;
+    if ( area_type_str == "area" )
+    {
+        area_type_str = "open_area";
+    }
     std::transform(area_type_str.begin(), area_type_str.end(),
                    area_type_str.begin(), ::toupper);
     AreaType area_type = AreaType::UNKNOWN;
