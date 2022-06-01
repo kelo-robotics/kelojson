@@ -28,6 +28,8 @@ bool ZonesLayer::initialise(const osm::Primitive::Store& store)
              store, osm::PrimitiveType::WAY, ZoneType::RAMP, "ramp", "Polygon") ||
          !initialiseZonesOfType<LoadParkingZone>(
              store, osm::PrimitiveType::WAY, ZoneType::LOAD_PARKING, "load_parking", "Polygon") ||
+         !initialiseZonesOfType<TransferStationZone>(
+             store, osm::PrimitiveType::WAY, ZoneType::TRANSFER_STATION, "transfer_station", "Polygon") ||
          !initialiseZonesOfType<OcclusionZone>(
              store, osm::PrimitiveType::WAY, ZoneType::OCCLUSION, "occlusion", "LineString") ||
          !autoGenerateOcclusionZones(store) )
@@ -290,6 +292,71 @@ const LoadParkingZone::ConstPtr ZonesLayer::getLoadParkingZone(
 {
     return getZoneOfTypeWithName<LoadParkingZone, LoadParkingZone::ConstPtr>(
             ZoneType::LOAD_PARKING, name);
+}
+
+const TransferStationZone::ConstVec ZonesLayer::getAllTransferStationZones() const
+{
+    return getAllZonesOfType<TransferStationZone, TransferStationZone::ConstVec>(
+            ZoneType::TRANSFER_STATION);
+}
+
+const TransferStationZone::ConstPtr ZonesLayer::getTransferStationZone(int id) const
+{
+    return getZoneOfTypeWithId<TransferStationZone, TransferStationZone::ConstPtr>(
+            ZoneType::TRANSFER_STATION, id);
+}
+
+const TransferStationZone::ConstPtr ZonesLayer::getTransferStationZone(
+        const std::string& name) const
+{
+    return getZoneOfTypeWithName<TransferStationZone, TransferStationZone::ConstPtr>(
+            ZoneType::TRANSFER_STATION, name);
+}
+
+const std::set<std::string> ZonesLayer::getAllTransferStationGroupNames() const
+{
+    if ( zone_store_.find(ZoneType::TRANSFER_STATION) == zone_store_.end() )
+    {
+        return std::set<std::string>();
+    }
+
+    std::set<std::string> all_group_names;
+    const Zone::Map& zones_map = zone_store_.at(ZoneType::TRANSFER_STATION);
+    for ( auto itr = zones_map.cbegin(); itr != zones_map.cend(); itr ++ )
+    {
+        const TransferStationZone::ConstPtr transfer_station_zone =
+            std::static_pointer_cast<const TransferStationZone>(itr->second);
+        const std::set<std::string>& group_names =
+            transfer_station_zone->getTransferStationGroups();
+        for ( const std::string& group_name : group_names )
+        {
+            all_group_names.insert(group_name);
+        }
+    }
+    return all_group_names;
+}
+
+const TransferStationZone::ConstVec ZonesLayer::getTransferStationZonesInGroup(
+        const std::string& group_name) const
+{
+    if ( zone_store_.find(ZoneType::TRANSFER_STATION) == zone_store_.end() )
+    {
+        return TransferStationZone::ConstVec();
+    }
+
+    TransferStationZone::ConstVec transfer_station_zones_in_group;
+    const Zone::Map& zones_map = zone_store_.at(ZoneType::TRANSFER_STATION);
+    for ( auto itr = zones_map.cbegin(); itr != zones_map.cend(); itr ++ )
+    {
+        const TransferStationZone::ConstPtr transfer_station_zone =
+            std::static_pointer_cast<const TransferStationZone>(itr->second);
+
+        if ( transfer_station_zone->belongsToGroup(group_name) )
+        {
+            transfer_station_zones_in_group.push_back(transfer_station_zone);
+        }
+    }
+    return transfer_station_zones_in_group;
 }
 
 const OcclusionZone::ConstVec ZonesLayer::getAllOcclusionZones() const

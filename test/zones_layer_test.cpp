@@ -10,6 +10,7 @@
 using namespace kelo::kelojson;
 using kelo::geometry_common::Pose2D;
 using kelo::geometry_common::Point2D;
+using kelo::geometry_common::LineSegment2D;
 using kelo::geometry_common::Polyline2D;
 using kelo::geometry_common::PointVec2D;
 
@@ -162,6 +163,42 @@ TEST_F(ZonesLayerFixture, loadParkingGroup)
         zones_layer->getLoadParkingZonesInGroup("room1_load_parking");
     EXPECT_EQ(load_parking_zones_in_group.size(), 1u);
     EXPECT_EQ(load_parking_zones_in_group.front()->getId(), -101838);
+}
+
+TEST_F(ZonesLayerFixture, getAllTransferStationZones)
+{
+    const TransferStationZone::ConstVec transfer_station_zones =
+        zones_layer->getAllTransferStationZones();
+    ASSERT_EQ(transfer_station_zones.size(), 1u);
+    EXPECT_EQ(transfer_station_zones.front()->getId(), -102148);
+}
+
+TEST_F(ZonesLayerFixture, getTransferStationZone)
+{
+    const TransferStationZone::ConstPtr transfer_station_zone =
+        zones_layer->getTransferStationZone("station_room_1");
+    ASSERT_NE(transfer_station_zone, nullptr);
+    EXPECT_EQ(transfer_station_zone->getId(), -102148);
+    EXPECT_NEAR(transfer_station_zone->getOrientation(), 0.0f, 5e-2f);
+    const LineSegment2D& opening = transfer_station_zone->getOpening();
+    EXPECT_NEAR(opening.length(), 0.75f, 0.1f);
+    const std::set<std::string>& groups = transfer_station_zone->getTransferStationGroups();
+    EXPECT_EQ(groups.size(), 1u);
+    EXPECT_NE(groups.find("station_group_room1"), groups.end());
+    EXPECT_TRUE(transfer_station_zone->belongsToGroup("station_group_room1"));
+    EXPECT_EQ(transfer_station_zone->getOpeningCenterPose(), Pose2D(-1.035f, 1.375f, 0.0f));
+}
+
+TEST_F(ZonesLayerFixture, transferStationGroup)
+{
+    const std::set<std::string> all_group_names = zones_layer->getAllTransferStationGroupNames();
+    EXPECT_EQ(all_group_names.size(), 1u);
+    EXPECT_NE(all_group_names.find("station_group_room1"), all_group_names.end());
+
+    const TransferStationZone::ConstVec transfer_station_zones_in_group =
+        zones_layer->getTransferStationZonesInGroup("station_group_room1");
+    ASSERT_EQ(transfer_station_zones_in_group.size(), 1u);
+    EXPECT_EQ(transfer_station_zones_in_group.front()->getId(), -102148);
 }
 
 TEST_F(ZonesLayerFixture, getAllOcclusionZones)

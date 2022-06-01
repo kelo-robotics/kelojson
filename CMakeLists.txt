@@ -78,6 +78,7 @@ add_library(kelojson_loader
     src/layer/zones/PolylineZone.cpp
     src/layer/zones/RampZone.cpp
     src/layer/zones/LoadParkingZone.cpp
+    src/layer/zones/TransferStationZone.cpp
     src/layer/zones/OcclusionZone.cpp
 
     # topology

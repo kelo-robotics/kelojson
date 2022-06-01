@@ -10,6 +10,7 @@ enum class ZoneType
     FORBIDDEN,
     RAMP,
     LOAD_PARKING,
+    TRANSFER_STATION,
     CHARGING_STATION,
     WAITING_LOCATION,
     OCCLUSION,
@@ -20,6 +21,7 @@ const std::vector<std::string> zone_type_strings = {
     "FORBIDDEN",
     "RAMP",
     "LOAD_PARKING",
+    "TRANSFER_STATION",
     "CHARGING_STATION",
     "WAITING_LOCATION",
     "OCCLUSION"

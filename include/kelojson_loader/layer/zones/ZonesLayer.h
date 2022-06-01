@@ -9,6 +9,7 @@
 #include <kelojson_loader/layer/zones/ForbiddenZone.h>
 #include <kelojson_loader/layer/zones/RampZone.h>
 #include <kelojson_loader/layer/zones/LoadParkingZone.h>
+#include <kelojson_loader/layer/zones/TransferStationZone.h>
 #include <kelojson_loader/layer/zones/OcclusionZone.h>
 
 namespace kelo {
@@ -88,6 +89,22 @@ class ZonesLayer : public Layer
         const std::set<std::string> getAllLoadParkingGroupNames() const;
 
         const LoadParkingZone::ConstVec getLoadParkingZonesInGroup(
+                const std::string& group_name) const;
+
+        // ====================================================================
+        // TRANSFER_STATION
+        // ====================================================================
+
+        const TransferStationZone::ConstVec getAllTransferStationZones() const;
+
+        const TransferStationZone::ConstPtr getTransferStationZone(int id) const;
+
+        const TransferStationZone::ConstPtr getTransferStationZone(
+                const std::string& name) const;
+
+        const std::set<std::string> getAllTransferStationGroupNames() const;
+
+        const TransferStationZone::ConstVec getTransferStationZonesInGroup(
                 const std::string& group_name) const;
 
         // ====================================================================
