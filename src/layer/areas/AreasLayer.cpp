@@ -161,7 +161,7 @@ const Transition::ConstVec AreasLayer::getNearestTransitions(
     std::map<int, float> transition_distances;
     for ( auto itr = transitions_.cbegin(); itr != transitions_.cend(); itr ++ )
     {
-        const Point2D closest_pt = GCUtils::calcClosestPoint(
+        const Point2D closest_pt = GCUtils::calcNearestPoint(
                 itr->second->getPolyline().vertices, pt);
         float dist = closest_pt.distTo(pt);
         if ( dist < search_radius )

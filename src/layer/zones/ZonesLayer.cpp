@@ -416,7 +416,7 @@ const OcclusionZone::ConstPtr ZonesLayer::getNearestOcclusionZone(
         const OcclusionZone::ConstPtr occlusion_zone =
             std::static_pointer_cast<const OcclusionZone>(itr->second);
         const Polyline2D& polyline = occlusion_zone->getPolyline();
-        Point2D closest_pt = GCUtils::calcClosestPoint(polyline.vertices, pt);
+        Point2D closest_pt = GCUtils::calcNearestPoint(polyline.vertices, pt);
         float dist = closest_pt.distTo(pt);
         if ( dist < min_dist )
         {
