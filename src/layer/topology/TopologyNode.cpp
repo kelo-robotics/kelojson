@@ -82,11 +82,11 @@ bool TopologyNode::initialiseInterLayerAssociation(
                 break;
             }
             default:
-                std::cout << Print::Warn << "[TopologyNode] "
-                          << "No implementation found to establish inter-layer "
-                          << "association from TOPOLOGY layer to " << asString(layer_type)
-                          << " layer." << std::endl << *relation
-                          << Print::End << std::endl;
+                // std::cout << Print::Warn << "[TopologyNode] "
+                //           << "No implementation found to establish inter-layer "
+                //           << "association from TOPOLOGY layer to " << asString(layer_type)
+                //           << " layer." << std::endl << *relation
+                //           << Print::End << std::endl;
                 break;
         }
     }
