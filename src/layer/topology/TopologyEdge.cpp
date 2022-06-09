@@ -96,8 +96,19 @@ bool TopologyEdge::addAllOverlappingAreas(
     const Area::ConstPtr end_area = areas_layer.getArea(end_node_area_id);
     const LineSegment2D segment = getLineSegment();
     Area::ConstPtr area = start_area;
+    size_t itr = 0, itr_limit = 50;
     while ( area->getId() != end_area->getId() )
     {
+        itr ++;
+        if ( itr >= itr_limit )
+        {
+            std::cout << Print::Warn << "[TopologyEdge] "
+                      << "overlaps with > 2 areas but cannot find which areas "
+                      << "since more than " << itr_limit << " area transitions "
+                      << "intersect with edge line segment." << std::endl
+                      << *this << Print::End << std::endl;
+            return false;
+        }
         const Transition::ConstVec area_transitions = area->getTransitions();
         bool found = false;
         for ( const Transition::ConstPtr& transition : area_transitions )
@@ -115,6 +126,7 @@ bool TopologyEdge::addAllOverlappingAreas(
                      end_area->getId() == other_area->getId() )
                 {
                     area = other_area;
+                    overlapping_areas.insert(area->getId());
                     found = true;
                     break;
                 }
