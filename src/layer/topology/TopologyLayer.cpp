@@ -1,4 +1,7 @@
+#include <deque>
+
 #include <geometry_common/Utils.h>
+
 #include <kelojson_loader/Print.h>
 #include <kelojson_loader/osm/PrimitiveUtils.h>
 #include <kelojson_loader/layer/topology/TopologyLayer.h>
@@ -294,6 +297,63 @@ const TopologyNode::ConstVec TopologyLayer::getAllNodes() const
         nodes.push_back(nodes_[i]);
     }
     return nodes;
+}
+
+const TopologyNode::ConstVec TopologyLayer::computePath(
+        const TopologyNode& start,
+        const TopologyNode& goal) const
+{
+    std::deque<size_t> fringe;
+    std::vector<bool> closed(nodes_.size(), false);
+    std::vector<size_t> parent_of(nodes_.size(), nodes_.size());
+
+    size_t start_id = start.getInternalId();
+    size_t goal_id = goal.getInternalId();
+    closed[start_id] = true;
+    fringe.push_back(start_id);
+    bool goal_reached = false;
+
+    while ( !fringe.empty() )
+    {
+        size_t curr_node_id = fringe.front();
+        fringe.pop_front();
+        closed[curr_node_id] = true;
+        if ( curr_node_id == goal_id )
+        {
+            goal_reached = true;
+            break;
+        }
+
+        for ( size_t i = 0; i < adjacency_matrix_[curr_node_id].size(); i++ )
+        {
+            if ( adjacency_matrix_[curr_node_id][i] != nullptr )
+            {
+                if ( !closed[i] )
+                {
+                    parent_of[i] = curr_node_id;
+                    fringe.push_back(i);
+                }
+            }
+        }
+    }
+
+    if ( !goal_reached )
+    {
+        return TopologyNode::ConstVec();
+    }
+
+    /* backtrack */
+    TopologyNode::ConstVec node_path;
+    size_t curr_node_id = goal_id;
+    while ( curr_node_id != start_id )
+    {
+        node_path.push_back(nodes_[curr_node_id]);
+        curr_node_id = parent_of[curr_node_id];
+    }
+    node_path.push_back(nodes_[start_id]);
+    std::reverse(node_path.begin(), node_path.end());
+
+    return node_path;
 }
 
 const TopologyEdge::ConstPtr TopologyLayer::getEdgeWithInternalId(

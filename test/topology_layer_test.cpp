@@ -82,6 +82,24 @@ TEST_F(TopologyLayerFixture, getOverlappingAreaId)
     EXPECT_EQ(area_id, -101782);
 }
 
+TEST_F(TopologyLayerFixture, computePath)
+{
+    const TopologyNode::ConstPtr start_node = topology_layer->getNodeWithPrimitiveId(-116953);
+    const TopologyNode::ConstPtr goal_node = topology_layer->getNodeWithPrimitiveId(-116957);
+    ASSERT_NE(start_node, nullptr);
+    ASSERT_NE(goal_node, nullptr);
+
+    const TopologyNode::ConstVec node_path = topology_layer->computePath(
+            *start_node, *goal_node);
+    ASSERT_EQ(node_path.size(), 6u);
+    EXPECT_EQ(node_path[0]->getPrimitiveId(), -116953);
+    EXPECT_EQ(node_path[1]->getPrimitiveId(), -116954);
+    EXPECT_EQ(node_path[2]->getPrimitiveId(), -116955);
+    EXPECT_EQ(node_path[3]->getPrimitiveId(), -116956);
+    EXPECT_EQ(node_path[4]->getPrimitiveId(), -123370);
+    EXPECT_EQ(node_path[5]->getPrimitiveId(), -116957);
+}
+
 TEST_F(TopologyLayerFixture, getAdjacentNodes)
 {
     const TopologyNode::ConstPtr node = topology_layer->getNodeWithPrimitiveId(-116953);

@@ -45,6 +45,10 @@ class TopologyLayer : public Layer
 
         const TopologyNode::ConstVec getAllNodes() const;
 
+        const TopologyNode::ConstVec computePath(
+                const TopologyNode& start,
+                const TopologyNode& goal) const;
+
         // ====================================================================
         // Edges
         // ====================================================================
