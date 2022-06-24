@@ -58,6 +58,13 @@ bool TopologyEdge::initialiseInterLayerAssociation(
     int start_node_area_id, end_node_area_id;
     bool start_node_in_area = start_node_->getOverlappingAreaId(start_node_area_id);
     bool end_node_in_area = end_node_->getOverlappingAreaId(end_node_area_id);
+    if ( !start_node_in_area && !end_node_in_area )
+    {
+        std::cout << Print::Warn << "[TopologyEdge] "
+                  << "Neither of the topology nodes of edge " << name_
+                  << " overlap with any area"
+                  << Print::End << std::endl;
+    }
     if ( start_node_in_area )
     {
         inter_layer_associations_[layer_type].insert(start_node_area_id);
