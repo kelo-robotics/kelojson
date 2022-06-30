@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <kelojson_loader/Map.h>
-#include <kelojson_loader/layer/areas/AreasLayer.h>
+#include <kelojson/Map.h>
+#include <kelojson/layer/areas/AreasLayer.h>
 
 /* Stringification helper macros */
 #define mkstr2(X) #X

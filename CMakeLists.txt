@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5.1)
-project(kelojson_loader)
+project(kelojson)
 
 add_compile_options(
     -std=c++11
@@ -19,7 +19,7 @@ catkin_package(
     INCLUDE_DIRS
         include
     LIBRARIES
-        kelojson_loader
+        kelojson
 )
 
 # The documentation build option set to OFF by default
@@ -52,7 +52,7 @@ include_directories(
     ${catkin_INCLUDE_DIRS}
 )
 
-add_library(kelojson_loader
+add_library(kelojson
     # osm
     src/osm/Primitive.cpp
     src/osm/NodePrimitive.cpp
@@ -93,7 +93,7 @@ add_library(kelojson_loader
     src/Map.cpp
 )
 
-target_link_libraries(kelojson_loader
+target_link_libraries(kelojson
     ${catkin_LIBRARIES}
 )
 

@@ -1,9 +1,9 @@
 #include <geometry_common/Utils.h>
 
-#include <kelojson_loader/Print.h>
-#include <kelojson_loader/osm/PrimitiveUtils.h>
-#include <kelojson_loader/layer/areas/DoorType.h>
-#include <kelojson_loader/layer/zones/ZonesLayer.h>
+#include <kelojson/Print.h>
+#include <kelojson/osm/PrimitiveUtils.h>
+#include <kelojson/layer/areas/DoorType.h>
+#include <kelojson/layer/zones/ZonesLayer.h>
 
 using kelo::geometry_common::Point2D;
 using kelo::geometry_common::PointVec2D;

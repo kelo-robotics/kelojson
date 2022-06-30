@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <kelojson_loader/Map.h>
+#include <kelojson/Map.h>
 
 /* Stringification helper macros */
 #define mkstr2(X) #X

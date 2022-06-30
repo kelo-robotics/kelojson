@@ -1,5 +1,5 @@
-#include <kelojson_loader/Print.h>
-#include <kelojson_loader/layer/areas/AreaPlanner.h>
+#include <kelojson/Print.h>
+#include <kelojson/layer/areas/AreaPlanner.h>
 
 namespace kelo {
 namespace kelojson {

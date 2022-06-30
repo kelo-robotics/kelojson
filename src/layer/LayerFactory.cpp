@@ -1,10 +1,10 @@
-#include <kelojson_loader/Print.h>
+#include <kelojson/Print.h>
 
-#include <kelojson_loader/layer/LayerFactory.h>
-#include <kelojson_loader/layer/areas/AreasLayer.h>
-#include <kelojson_loader/layer/zones/ZonesLayer.h>
-#include <kelojson_loader/layer/topology/TopologyLayer.h>
-#include <kelojson_loader/layer/occupancy/OccupancyGridLayer.h>
+#include <kelojson/layer/LayerFactory.h>
+#include <kelojson/layer/areas/AreasLayer.h>
+#include <kelojson/layer/zones/ZonesLayer.h>
+#include <kelojson/layer/topology/TopologyLayer.h>
+#include <kelojson/layer/occupancy/OccupancyGridLayer.h>
 
 namespace kelo {
 namespace kelojson {

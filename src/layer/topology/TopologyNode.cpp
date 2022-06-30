@@ -1,8 +1,8 @@
-#include <kelojson_loader/Print.h>
-#include <kelojson_loader/osm/PrimitiveUtils.h>
-#include <kelojson_loader/layer/topology/TopologyNode.h>
-#include <kelojson_loader/layer/Layer.h>
-#include <kelojson_loader/layer/areas/AreasLayer.h>
+#include <kelojson/Print.h>
+#include <kelojson/osm/PrimitiveUtils.h>
+#include <kelojson/layer/topology/TopologyNode.h>
+#include <kelojson/layer/Layer.h>
+#include <kelojson/layer/areas/AreasLayer.h>
 
 namespace kelo {
 namespace kelojson {

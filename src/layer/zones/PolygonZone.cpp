@@ -1,8 +1,8 @@
 #include <geometry_common/Utils.h>
 
-#include <kelojson_loader/Print.h>
-#include <kelojson_loader/osm/PrimitiveUtils.h>
-#include <kelojson_loader/layer/zones/PolygonZone.h>
+#include <kelojson/Print.h>
+#include <kelojson/osm/PrimitiveUtils.h>
+#include <kelojson/layer/zones/PolygonZone.h>
 
 using GCUtils = kelo::geometry_common::Utils;
 

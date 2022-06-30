@@ -1,6 +1,6 @@
-#include <kelojson_loader/Print.h>
-#include <kelojson_loader/osm/PrimitiveUtils.h>
-#include <kelojson_loader/layer/occupancy/OccupancyGridLayer.h>
+#include <kelojson/Print.h>
+#include <kelojson/osm/PrimitiveUtils.h>
+#include <kelojson/layer/occupancy/OccupancyGridLayer.h>
 
 namespace kelo {
 namespace kelojson {

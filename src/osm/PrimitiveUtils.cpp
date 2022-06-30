@@ -1,4 +1,4 @@
-#include <kelojson_loader/osm/PrimitiveUtils.h>
+#include <kelojson/osm/PrimitiveUtils.h>
 
 using kelo::geometry_common::PointVec2D;
 
