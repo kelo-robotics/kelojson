@@ -1,9 +1,9 @@
 #include <geometry_common/Polygon2D.h>
 #include <geometry_common/Utils.h>
 
-#include <kelojson_loader/Print.h>
-#include <kelojson_loader/osm/PrimitiveUtils.h>
-#include <kelojson_loader/layer/zones/OcclusionZone.h>
+#include <kelojson/Print.h>
+#include <kelojson/osm/PrimitiveUtils.h>
+#include <kelojson/layer/zones/OcclusionZone.h>
 
 using kelo::geometry_common::Point2D;
 using kelo::geometry_common::Vector2D;

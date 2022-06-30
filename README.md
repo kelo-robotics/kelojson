@@ -1,4 +1,4 @@
-# KELO JSON Loader
+# KELO JSON
 
 Package to load `.kelojson` map data.
 
@@ -25,14 +25,14 @@ We use [Doxygen](https://www.doxygen.nl/index.html) for code documentation.
   ```
 
 - The documentation will be generated at
-  `<YOUR_CATKIN_WS>/build/kelojson_loader/docs/html/index.html`
+  `<YOUR_CATKIN_WS>/build/kelojson/docs/html/index.html`
 
 ## Test
 
 Run unit tests with
 
 ```bash
-catkin build --this --catkin-make-args run_tests -- && rosrun kelojson_loader kelojson_loader_test
+catkin build --this --catkin-make-args run_tests -- && rosrun kelojson kelojson_test
 ```
 
 **Note**: Requires `GTest` package (`sudo apt install libgtest-dev`)

@@ -1,6 +1,6 @@
-#include <kelojson_loader/osm/PrimitiveUtils.h>
+#include <kelojson/osm/PrimitiveUtils.h>
 
-#include <kelojson_loader/layer/zones/NodeZone.h>
+#include <kelojson/layer/zones/NodeZone.h>
 
 using kelo::geometry_common::Point2D;
 using kelo::geometry_common::Pose2D;

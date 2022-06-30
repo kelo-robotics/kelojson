@@ -2,9 +2,9 @@
 
 #include <geometry_common/Utils.h>
 
-#include <kelojson_loader/Print.h>
-#include <kelojson_loader/osm/PrimitiveUtils.h>
-#include <kelojson_loader/layer/topology/TopologyLayer.h>
+#include <kelojson/Print.h>
+#include <kelojson/osm/PrimitiveUtils.h>
+#include <kelojson/layer/topology/TopologyLayer.h>
 
 using kelo::geometry_common::Point2D;
 using kelo::geometry_common::LineSegment2D;

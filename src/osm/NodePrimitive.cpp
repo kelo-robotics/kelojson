@@ -1,6 +1,6 @@
 #include <yaml_common/Parser2.h>
 
-#include <kelojson_loader/osm/NodePrimitive.h>
+#include <kelojson/osm/NodePrimitive.h>
 
 using kelo::geometry_common::Point2D;
 using Parser = kelo::yaml_common::Parser2;

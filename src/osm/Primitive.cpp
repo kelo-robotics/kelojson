@@ -1,6 +1,6 @@
 #include <yaml_common/Parser2.h>
 
-#include <kelojson_loader/osm/Primitive.h>
+#include <kelojson/osm/Primitive.h>
 
 using Parser = kelo::yaml_common::Parser2;
 

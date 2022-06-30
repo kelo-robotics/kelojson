@@ -1,10 +1,10 @@
 #include <set>
 #include <yaml_common/Parser2.h>
 
-#include <kelojson_loader/Print.h>
-#include <kelojson_loader/osm/PrimitiveFactory.h>
-#include <kelojson_loader/layer/LayerFactory.h>
-#include <kelojson_loader/Map.h>
+#include <kelojson/Print.h>
+#include <kelojson/osm/PrimitiveFactory.h>
+#include <kelojson/layer/LayerFactory.h>
+#include <kelojson/Map.h>
 
 using Parser = kelo::yaml_common::Parser2;
 

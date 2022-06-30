@@ -1,6 +1,6 @@
-#include <kelojson_loader/Print.h>
-#include <kelojson_loader/osm/PrimitiveUtils.h>
-#include <kelojson_loader/layer/occupancy/OccupancyGrid.h>
+#include <kelojson/Print.h>
+#include <kelojson/osm/PrimitiveUtils.h>
+#include <kelojson/layer/occupancy/OccupancyGrid.h>
 
 using kelo::geometry_common::Pose2D;
 

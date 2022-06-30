@@ -1,12 +1,12 @@
 #include <geometry_common/Utils.h>
 
-#include <kelojson_loader/Print.h>
-#include <kelojson_loader/osm/NodePrimitive.h>
-#include <kelojson_loader/osm/WayPrimitive.h>
-#include <kelojson_loader/osm/RelationPrimitive.h>
-#include <kelojson_loader/osm/PrimitiveUtils.h>
-#include <kelojson_loader/layer/areas/AreasLayer.h>
-#include <kelojson_loader/layer/areas/AreaPlanner.h>
+#include <kelojson/Print.h>
+#include <kelojson/osm/NodePrimitive.h>
+#include <kelojson/osm/WayPrimitive.h>
+#include <kelojson/osm/RelationPrimitive.h>
+#include <kelojson/osm/PrimitiveUtils.h>
+#include <kelojson/layer/areas/AreasLayer.h>
+#include <kelojson/layer/areas/AreaPlanner.h>
 
 using kelo::geometry_common::Point2D;
 using kelo::geometry_common::LineSegment2D;

@@ -1,6 +1,6 @@
-#include <kelojson_loader/Print.h>
-#include <kelojson_loader/osm/PrimitiveUtils.h>
-#include <kelojson_loader/layer/zones/RampZone.h>
+#include <kelojson/Print.h>
+#include <kelojson/osm/PrimitiveUtils.h>
+#include <kelojson/layer/zones/RampZone.h>
 
 using kelo::geometry_common::Polyline2D;
 

@@ -1,10 +1,10 @@
 #include <yaml_common/Parser2.h>
 
-#include <kelojson_loader/Print.h>
-#include <kelojson_loader/osm/NodePrimitive.h>
-#include <kelojson_loader/osm/WayPrimitive.h>
-#include <kelojson_loader/osm/RelationPrimitive.h>
-#include <kelojson_loader/osm/PrimitiveFactory.h>
+#include <kelojson/Print.h>
+#include <kelojson/osm/NodePrimitive.h>
+#include <kelojson/osm/WayPrimitive.h>
+#include <kelojson/osm/RelationPrimitive.h>
+#include <kelojson/osm/PrimitiveFactory.h>
 
 using Parser = kelo::yaml_common::Parser2;
 
