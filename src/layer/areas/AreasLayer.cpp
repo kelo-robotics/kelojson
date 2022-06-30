@@ -9,6 +9,7 @@
 #include <kelojson_loader/layer/areas/AreaPlanner.h>
 
 using kelo::geometry_common::Point2D;
+using kelo::geometry_common::LineSegment2D;
 using kelo::geometry_common::Polyline2D;
 using GCUtils = kelo::geometry_common::Utils;
 
@@ -246,10 +247,9 @@ std::string AreasLayer::getPrintablePath(const std::vector<int>& area_path) cons
 }
 
 const Transition::ConstVec AreasLayer::getIntersectingTransitions(
-        const Point2D& start,
-        const Point2D& end) const
+        const LineSegment2D& line_segment) const
 {
-    Polyline2D polyline({start, end});
+    Polyline2D polyline({line_segment.start, line_segment.end});
     return getIntersectingTransitions(polyline);
 }
 

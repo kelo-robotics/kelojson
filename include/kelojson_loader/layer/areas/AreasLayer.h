@@ -51,8 +51,7 @@ class AreasLayer : public Layer
         std::string getPrintablePath(const std::vector<int>& area_path) const;
 
         const Transition::ConstVec getIntersectingTransitions(
-                const geometry_common::Point2D& start,
-                const geometry_common::Point2D& end) const;
+                const geometry_common::LineSegment2D& line_segment) const;
 
         const Transition::ConstVec getIntersectingTransitions(
                 const geometry_common::Polyline2D& polyline) const;
