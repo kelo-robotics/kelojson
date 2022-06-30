@@ -1,6 +1,10 @@
 #ifndef KELO_KELOJSON_OSM_PRIMITIVETYPE_H
 #define KELO_KELOJSON_OSM_PRIMITIVETYPE_H
 
+#include <vector>
+#include <string>
+#include <algorithm>
+
 namespace kelo {
 namespace kelojson {
 namespace osm {
