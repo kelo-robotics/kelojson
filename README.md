@@ -1,5 +1,7 @@
 # KELO JSON
 
+[![build status](https://git.locomotec.com:444/kelo/mapping/kelojson/badges/master/build.svg)](https://git.locomotec.com:444/kelo/mapping/kelojson/commits/master)
+
 Package to load `.kelojson` map data.
 
 ## Dependencies

@@ -1,0 +1,21 @@
+image: docker:18-git
+
+variables:
+  IMAGE_NAME: kelojson
+
+services:
+  - docker:18-dind
+
+stages:
+  - build and test
+
+build_and_test:
+  tags:
+    - docker
+  stage: build and test
+  script:
+    - docker build --build-arg SSH_KEY="$SSH_PRIVATE_DEPLOY_KEY" --no-cache  -t $IMAGE_NAME .
+    - docker system prune -f
+  # only:
+  #   - master
+  #   - develop
