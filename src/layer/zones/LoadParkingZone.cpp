@@ -134,7 +134,8 @@ bool LoadParkingZone::initialise(int way_id, const osm::Primitive::Store& store)
             {
                 std::cout << Print::Err << "[LoadParkingZone] "
                           << "Found a \"load_parking_group\" relation containing "
-                          << "a member which is not of WAY type"
+                          << "a member which is not of WAY type or does not have "
+                          << "role \"parking\""
                           << Print::End << std::endl;
                 return false;
             }
