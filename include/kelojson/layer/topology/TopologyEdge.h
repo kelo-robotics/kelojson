@@ -45,7 +45,7 @@ class TopologyEdge
 
         int getPrimitiveId() const;
 
-        int getInternalId() const;
+        size_t getInternalId() const;
 
         const std::string& getName() const;
 

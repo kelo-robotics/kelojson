@@ -182,6 +182,11 @@ int TopologyEdge::getPrimitiveId() const
     return primitive_id_;
 }
 
+size_t TopologyEdge::getInternalId() const
+{
+    return internal_id_;
+}
+
 const std::string& TopologyEdge::getName() const
 {
     return name_;
