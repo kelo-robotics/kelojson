@@ -4,7 +4,6 @@
 
 #include <kelojson/Print.h>
 #include <kelojson/osm/PrimitiveUtils.h>
-#include <kelojson/layer/topology/TopologyPlanner.h>
 #include <kelojson/layer/topology/TopologyLayer.h>
 
 using kelo::geometry_common::Point2D;
@@ -302,10 +301,11 @@ const TopologyNode::ConstVec TopologyLayer::getAllNodes() const
 
 const TopologyNode::ConstVec TopologyLayer::computePath(
         const TopologyNode& start,
-        const TopologyNode& goal) const
+        const TopologyNode& goal,
+        const TopologyPlanner::SearchType& search_type) const
 {
-    return TopologyPlanner::plan(nodes_, edges_, adjacency_matrix_, start, goal,
-            TopologyPlanner::SearchType::BFS);
+    return TopologyPlanner::plan(
+            nodes_, edges_, adjacency_matrix_, start, goal, search_type);
 }
 
 const TopologyEdge::ConstPtr TopologyLayer::getEdgeWithInternalId(

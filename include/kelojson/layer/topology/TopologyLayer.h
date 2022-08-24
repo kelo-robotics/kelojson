@@ -5,6 +5,7 @@
 #include <kelojson/layer/areas/AreasLayer.h>
 #include <kelojson/layer/topology/TopologyNode.h>
 #include <kelojson/layer/topology/TopologyEdge.h>
+#include <kelojson/layer/topology/TopologyPlanner.h>
 
 namespace kelo {
 namespace kelojson {
@@ -47,7 +48,9 @@ class TopologyLayer : public Layer
 
         const TopologyNode::ConstVec computePath(
                 const TopologyNode& start,
-                const TopologyNode& goal) const;
+                const TopologyNode& goal,
+                const TopologyPlanner::SearchType& search_type =
+                        TopologyPlanner::SearchType::BFS) const;
 
         // ====================================================================
         // Edges

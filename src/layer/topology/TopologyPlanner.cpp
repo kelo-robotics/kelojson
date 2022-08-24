@@ -1,4 +1,4 @@
-#include <deque>
+#include <queue>
 
 #include <kelojson/Print.h>
 #include <kelojson/layer/topology/TopologyPlanner.h>
@@ -18,45 +18,81 @@ const TopologyNode::ConstVec TopologyPlanner::plan(
     size_t goal_id = goal.getInternalId();
 
     std::vector<bool> closed(nodes.size(), false);
+    std::vector<float> f_values(nodes.size(), 0.0f);
     std::vector<size_t> parent_of(nodes.size(), nodes.size());
-    closed[start_id] = true;
 
-    if ( search_type == SearchType::BFS ) // Breadth first search
+    std::priority_queue<Node, std::vector<Node>,
+        std::function<bool(const Node&, const Node&)> > fringe(greaterNode);
+
+    Node start_node;
+    start_node.topology_node_id = start_id;
+    fringe.push(start_node);
+    bool goal_reached = false;
+    Node current;
+
+    while ( !fringe.empty() )
     {
-        std::deque<size_t> fringe;
+        current = fringe.top();
+        fringe.pop();
+        size_t curr_node_id = current.topology_node_id;
 
-        fringe.push_back(start_id);
-        bool goal_reached = false;
-
-        while ( !fringe.empty() )
+        /* ignore already closed node */
+        if ( closed[curr_node_id] )
         {
-            size_t curr_node_id = fringe.front();
-            fringe.pop_front();
-            closed[curr_node_id] = true;
-            if ( curr_node_id == goal_id )
-            {
-                goal_reached = true;
-                break;
-            }
-
-            for ( size_t i = 0; i < adjacency_matrix[curr_node_id].size(); i++ )
-            {
-                if ( adjacency_matrix[curr_node_id][i] != nullptr )
-                {
-                    if ( !closed[i] )
-                    {
-                        parent_of[i] = curr_node_id;
-                        fringe.push_back(i);
-                    }
-                }
-            }
+            continue;
         }
 
-        return ( goal_reached )
-               ? TopologyPlanner::backtrack(nodes, parent_of, start_id, goal_id)
-               : TopologyNode::ConstVec();
+        closed[curr_node_id] = true;
+
+        if ( curr_node_id == goal_id )
+        {
+            goal_reached = true;
+            break;
+        }
+
+        /* add neighbours of current */
+        for ( size_t i = 0; i < adjacency_matrix[curr_node_id].size(); i++ )
+        {
+            if ( adjacency_matrix[curr_node_id][i] == nullptr )
+            {
+                continue;
+            }
+
+            if ( closed[i] )
+            {
+                continue;
+            }
+
+            Node n;
+            n.g = current.g;
+            n.topology_node_id = i;
+            /* update g, h and f values */
+            switch ( search_type )
+            {
+                case SearchType::BFS :
+                    n.g += 1.0f;
+                    break;
+                case SearchType::DIJKSTRA :
+                    n.g += nodes[i]->getPosition().distTo(nodes[curr_node_id]->getPosition());
+                    break;
+            }
+            n.f = n.g + n.h;
+
+            /* ignore if n is already in fringe with lower cost */
+            if ( parent_of[i] < nodes.size() && f_values[i] < n.f )
+            {
+                continue;
+            }
+
+            fringe.push(n);
+            parent_of[i] = curr_node_id; // update parent
+            f_values[i] = n.f; // update f value
+        }
     }
-    return TopologyNode::ConstVec();
+
+    return ( goal_reached )
+           ? TopologyPlanner::backtrack(nodes, parent_of, start_id, goal_id)
+           : TopologyNode::ConstVec();
 }
 
 const TopologyNode::ConstVec TopologyPlanner::backtrack(
