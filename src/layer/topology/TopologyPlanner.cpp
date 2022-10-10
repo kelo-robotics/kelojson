@@ -8,7 +8,6 @@ namespace kelojson {
 
 const TopologyNode::ConstVec TopologyPlanner::plan(
         const TopologyNode::Vec& nodes,
-        const TopologyEdge::Vec& edges,
         const TopologyEdge::Matrix& adjacency_matrix,
         const TopologyNode& start,
         const TopologyNode& goal,

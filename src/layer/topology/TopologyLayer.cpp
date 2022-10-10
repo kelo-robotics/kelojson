@@ -305,7 +305,7 @@ const TopologyNode::ConstVec TopologyLayer::computePath(
         const TopologyPlanner::SearchType& search_type) const
 {
     return TopologyPlanner::plan(
-            nodes_, edges_, adjacency_matrix_, start, goal, search_type);
+            nodes_, adjacency_matrix_, start, goal, search_type);
 }
 
 const TopologyEdge::ConstPtr TopologyLayer::getEdgeWithInternalId(
