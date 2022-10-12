@@ -14,6 +14,8 @@ enum class ZoneType
     CHARGING_STATION,
     WAITING_LOCATION,
     OCCLUSION,
+    STAIRS,
+    ELEVATOR
 };
 
 const std::vector<std::string> zone_type_strings = {
@@ -24,7 +26,9 @@ const std::vector<std::string> zone_type_strings = {
     "TRANSFER_STATION",
     "CHARGING_STATION",
     "WAITING_LOCATION",
-    "OCCLUSION"
+    "OCCLUSION",
+    "STAIRS",
+    "ELEVATOR"
 };
 
 inline std::string asString(const ZoneType& zone_type)

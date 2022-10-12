@@ -32,6 +32,10 @@ bool ZonesLayer::initialise(const osm::Primitive::Store& store)
              store, osm::PrimitiveType::WAY, ZoneType::TRANSFER_STATION, "transfer_station", "Polygon") ||
          !initialiseZonesOfType<OcclusionZone>(
              store, osm::PrimitiveType::WAY, ZoneType::OCCLUSION, "occlusion", "LineString") ||
+         !initialiseZonesOfType<StairsZone>(
+             store, osm::PrimitiveType::WAY, ZoneType::STAIRS, "stairs", "Polygon") ||
+         !initialiseZonesOfType<ElevatorZone>(
+             store, osm::PrimitiveType::WAY, ZoneType::ELEVATOR, "elevator", "Polygon") ||
          !autoGenerateOcclusionZones(store) )
     {
         return false;
@@ -469,6 +473,30 @@ const PointVec2D ZonesLayer::getOcclusionPointsAlong(const Path& pose_path) cons
         pt_path.push_back(pose_path[i].position());
     }
     return getOcclusionPointsAlong(pt_path);
+}
+
+const StairsZone::ConstVec ZonesLayer::getAllStairsZones() const
+{
+    return getAllZonesOfType<StairsZone, StairsZone::ConstVec>(
+            ZoneType::STAIRS);
+}
+
+const StairsZone::ConstPtr ZonesLayer::getStairsZone(int id) const
+{
+    return getZoneOfTypeWithId<StairsZone, StairsZone::ConstPtr>(
+            ZoneType::STAIRS, id);
+}
+
+const ElevatorZone::ConstVec ZonesLayer::getAllElevatorZones() const
+{
+    return getAllZonesOfType<ElevatorZone, ElevatorZone::ConstVec>(
+            ZoneType::ELEVATOR);
+}
+
+const ElevatorZone::ConstPtr ZonesLayer::getElevatorZone(int id) const
+{
+    return getZoneOfTypeWithId<ElevatorZone, ElevatorZone::ConstPtr>(
+            ZoneType::ELEVATOR, id);
 }
 
 template <typename T>

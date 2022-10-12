@@ -11,6 +11,8 @@
 #include <kelojson/layer/zones/LoadParkingZone.h>
 #include <kelojson/layer/zones/TransferStationZone.h>
 #include <kelojson/layer/zones/OcclusionZone.h>
+#include <kelojson/layer/zones/StairsZone.h>
+#include <kelojson/layer/zones/ElevatorZone.h>
 
 namespace kelo {
 namespace kelojson {
@@ -127,6 +129,22 @@ class ZonesLayer : public Layer
 
         const geometry_common::PointVec2D getOcclusionPointsAlong(
                 const geometry_common::Path& pose_path) const;
+
+        // ====================================================================
+        // STAIRS
+        // ====================================================================
+
+        const StairsZone::ConstVec getAllStairsZones() const;
+
+        const StairsZone::ConstPtr getStairsZone(int id) const;
+
+        // ====================================================================
+        // ELEVATOR
+        // ====================================================================
+
+        const ElevatorZone::ConstVec getAllElevatorZones() const;
+
+        const ElevatorZone::ConstPtr getElevatorZone(int id) const;
 
     private:
 
