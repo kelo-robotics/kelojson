@@ -6,8 +6,8 @@ Package to load `.kelojson` map data.
 
 ## Dependencies
 
-- `geometry_common`
-- `yaml_common`
+- [geometry_common](https://git.locomotec.com:444/kelo/common/geometry_common)
+- [yaml_common](https://git.locomotec.com:444/kelo/common/yaml_common)
 
 ## Documentation
 
